@@ -5,7 +5,9 @@ echo 🚀 Setting up Tile Stock Management System...
 echo.
 
 REM Backend setup
+echo.
 echo 📦 Setting up backend...
+echo ⏳ Installing dependencies (this may take a minute)...
 cd backend
 call npm install
 

@@ -6,6 +6,7 @@ echo "🚀 Setting up Tile Stock Management System..."
 # Backend setup
 echo ""
 echo "📦 Setting up backend..."
+echo "⏳ Installing dependencies (this may take a minute)..."
 cd backend
 npm install
 

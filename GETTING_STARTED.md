@@ -11,10 +11,14 @@ That's it! The database is already set up and shared.
 
 ## Setup (5 minutes)
 
+### ⚠️ IMPORTANT: Run the setup script first!
+
+**DO NOT** run `npm run dev` directly. You must install dependencies first.
+
 ### Windows Users
 
 1. Open the project folder
-2. Double-click `setup.bat`
+2. **Double-click `setup.bat`** ← This installs everything you need
 3. Wait for installation to complete
 
 ### Mac/Linux Users
@@ -25,6 +29,16 @@ That's it! The database is already set up and shared.
    chmod +x setup.sh
    ./setup.sh
    ```
+
+**Alternative (Manual Setup):**
+```bash
+cd backend
+npm install
+cp .env.example .env
+
+cd ../frontend
+npm install
+```
 
 ## Running the Project
 
@@ -59,7 +73,20 @@ Use these credentials (shared by all team members):
 
 ## Troubleshooting
 
+### "ts-node: command not found" or "exec not found"
+
+**Problem:** You didn't install dependencies!
+
+**Solution:** 
+```bash
+cd backend
+npm install
+```
+
+Then try `npm run dev` again.
+
 ### Port 5000 already in use?
+
 **Windows:** 
 ```bash
 taskkill /F /IM node.exe
