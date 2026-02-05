@@ -1,222 +1,113 @@
-# Setup Guide
+# Tile Stock Management System - Setup Guide
 
-## Quick Start
+Welcome! This guide will help you set up the project on **Windows**, **macOS**, or **Linux**.
 
-### Prerequisites
-- Node.js (v18 or higher) - [Download](https://nodejs.org/)
-- MongoDB (local installation or MongoDB Atlas account)
-- npm or yarn package manager
+## Prerequisites
 
-### Step 1: Install Dependencies
+Install these before starting:
+- **Node.js** (v18 or higher) - [Download here](https://nodejs.org/)
+- **npm** (comes with Node.js)
+- **MongoDB** (optional if using MongoDB Atlas)
 
-From the root directory, run:
+## Quick Start (Any OS)
+
+### 1. Clone the Repository
+
 ```bash
-npm run install:all
+git clone <your-repo-url>
+cd stock-management-system
 ```
 
-This will install dependencies for:
-- Root project
-- Backend
-- Frontend
+### 2. Backend Setup
 
-### Step 2: Configure Backend
-
-1. Navigate to backend directory:
 ```bash
 cd backend
+npm install
 ```
 
-2. Copy the environment example file:
+#### Configure Environment Variables
+
+1. Copy the example file:
+   - **Windows (PowerShell):** `copy .env.example .env`
+   - **Mac/Linux:** `cp .env.example .env`
+
+2. **That's it!** The database is already configured and shared among all team members.
+   - The `.env.example` already contains the correct MongoDB connection
+   - No need to edit anything unless you want to change the port
+
+> **Note:** All collaborators use the **same shared database**. The database already has users and data.
+
+
+#### Seed the Database (Optional - Already Done)
+
+The database already has users created. You can skip this step.
+
+If you need to recreate users:
 ```bash
-# On Windows PowerShell
-Copy-Item .env.example .env
-
-# On Linux/Mac
-cp .env.example .env
+npm run seed
 ```
 
-3. Edit `.env` file with your configuration:
-   - Set `MONGODB_URI` to your MongoDB connection string
-   - Set `JWT_SECRET` to a secure random string
-   - Adjust other settings as needed
 
-### Step 3: Configure Frontend
+#### Start Backend Server
 
-1. Navigate to frontend directory:
-```bash
-cd ../frontend
-```
-
-2. Create `.env` file (if needed):
-```bash
-REACT_APP_API_URL=http://localhost:5000/api
-```
-
-### Step 4: Start MongoDB
-
-**Option A: Local MongoDB**
-```bash
-# Start MongoDB service (Windows)
-net start MongoDB
-
-# Or on Linux/Mac
-mongod
-```
-
-**Option B: MongoDB Atlas**
-- Use your MongoDB Atlas connection string in `.env`
-
-### Step 5: Run the Application
-
-**Option A: Run both servers together (from root):**
 ```bash
 npm run dev
 ```
 
-**Option B: Run separately:**
+Backend runs on **http://localhost:5000**
 
-Terminal 1 - Backend:
-```bash
-cd backend
-npm run dev
-```
+### 3. Frontend Setup
 
-Terminal 2 - Frontend:
+Open a **new terminal** (keep backend running):
+
 ```bash
 cd frontend
+npm install
 npm start
 ```
 
-### Step 6: Access the Application
+Frontend runs on **http://localhost:3000**
 
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:5000/api
-- **API Health Check**: http://localhost:5000/api/health
+## Login Credentials
 
-## First Steps After Setup
+**Everyone uses the same shared database**, so these credentials work for all team members:
 
-1. **Create a Grand Admin Account**
-   - Go to http://localhost:3000/register
-   - Register with role "Grand Admin"
-   - Or use the API directly to create users
+- **Email:** `admin@example.com`
+- **Password:** `password123`
 
-2. **Create a Shop**
-   - Use the API or create directly in MongoDB
-   - Example:
-   ```javascript
-   {
-     "name": "Main Shop",
-     "address": {
-       "city": "Your City",
-       "country": "Your Country"
-     },
-     "isActive": true
-   }
-   ```
+> Any data you add or modify will be visible to all collaborators.
 
-3. **Create Shop Admin/Staff**
-   - Register new users with appropriate roles
-   - Assign them to the shop
 
-4. **Start Adding Tiles**
-   - Login to the system
-   - Navigate to Tiles → Add New Tile
-   - Fill in the tile information
+## Troubleshooting
+
+### "Cannot connect to MongoDB"
+- Make sure your MongoDB URI in `.env` is correct
+- If using MongoDB Atlas, ensure your IP is whitelisted (or use `0.0.0.0/0` for testing)
+
+### "Port 5000 already in use"
+- **Windows:** `taskkill /F /IM node.exe`
+- **Mac/Linux:** `pkill node`
+
+### "Users don't exist / Can't login"
+- Run `npm run seed` in the backend folder
 
 ## Project Structure
 
 ```
-tile-stock-management-system/
-├── backend/
-│   ├── src/
-│   │   ├── config/          # Configuration files
-│   │   ├── models/          # MongoDB models
-│   │   ├── routes/          # API routes
-│   │   ├── middleware/      # Express middleware
-│   │   └── server.ts        # Main server file
-│   ├── package.json
-│   └── tsconfig.json
-├── frontend/
-│   ├── src/
-│   │   ├── components/     # React components
-│   │   ├── pages/          # Page components
-│   │   ├── store/          # Redux store
-│   │   ├── App.tsx         # Main app component
-│   │   └── index.tsx       # Entry point
-│   └── package.json
-├── Architecture.md         # System architecture
-├── TIME_ESTIMATE.md        # Development timeline
-└── README.md              # Project readme
+├── backend/          # Express + MongoDB API
+│   ├── src/         # Source code
+│   ├── scripts/     # Utility scripts (seed, etc.)
+│   └── .env         # Environment variables (not in git)
+├── frontend/        # React frontend
+└── README.md        # This file
 ```
 
-## Available Scripts
+## Development Workflow
 
-### Root Level
-- `npm run dev` - Run both backend and frontend
-- `npm run install:all` - Install all dependencies
-- `npm run build` - Build both projects
+1. Always run `npm run dev` in backend first
+2. Then run `npm start` in frontend
+3. Access the app at http://localhost:3000
 
-### Backend
-- `npm run dev` - Start development server with nodemon
-- `npm run build` - Build TypeScript to JavaScript
-- `npm start` - Start production server
+## Need Help?
 
-### Frontend
-- `npm start` - Start development server
-- `npm run build` - Build for production
-- `npm test` - Run tests
-
-## Troubleshooting
-
-### MongoDB Connection Issues
-- Ensure MongoDB is running
-- Check connection string in `.env`
-- Verify network/firewall settings
-
-### Port Already in Use
-- Backend default: 5000
-- Frontend default: 3000
-- Change ports in `.env` or `package.json` if needed
-
-### CORS Errors
-- Ensure `CORS_ORIGIN` in backend `.env` matches frontend URL
-- Default: `http://localhost:3000`
-
-### TypeScript Errors
-- Run `npm install` in the specific directory
-- Check `tsconfig.json` settings
-- Ensure all dependencies are installed
-
-## Next Steps
-
-1. Complete remaining API endpoints (Stock, Sales, Reports)
-2. Implement image upload functionality
-3. Build visual preview system
-4. Add image-based recognition
-5. Implement real-time synchronization
-6. Add advanced reporting features
-
-## Development Status
-
-✅ Completed:
-- Project structure setup
-- Backend foundation (Express, TypeScript, MongoDB)
-- Authentication system (JWT)
-- Database models (User, Shop, Tile)
-- Tile CRUD APIs
-- Frontend foundation (React, TypeScript, Redux)
-- Authentication UI (Login, Register)
-- Tile management UI (List, Create, Detail)
-- Basic navigation and routing
-
-🚧 In Progress:
-- Stock management APIs and UI
-- Sales management APIs and UI
-- Reports and analytics
-
-⏳ Pending:
-- Visual preview system
-- Image-based recognition
-- Multi-shop synchronization
-- Advanced features
-
+Check existing issues or create a new one!

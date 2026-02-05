@@ -1,6 +1,9 @@
 # Tile Stock Management System
 
+> **👥 New Collaborator?** → Start here: [GETTING_STARTED.md](./GETTING_STARTED.md)
+
 A comprehensive web-based stock management system for tile retailers with inventory tracking, sales management, visual product previews, and multi-shop administration.
+
 
 ## Features
 
@@ -47,47 +50,47 @@ tile-stock-management-system/
 
 ### Installation
 
+**📖 For detailed setup instructions (Windows/Mac/Linux), see [SETUP_GUIDE.md](./SETUP_GUIDE.md)**
+
+**Quick Start:**
+
 1. Clone the repository
 ```bash
 git clone <repository-url>
 cd tile-stock-management-system
 ```
 
-2. Install all dependencies
+2. Backend Setup
 ```bash
-npm run install:all
-```
-
-3. Set up environment variables
-```bash
-# Backend
 cd backend
-cp .env.example .env
-# Edit .env with your configuration
-
-# Frontend
-cd ../frontend
-cp .env.example .env
-# Edit .env with your configuration
+npm install
+cp .env.example .env  # Database already configured!
+npm run dev           # Start backend server
 ```
 
-4. Start development servers
+3. Frontend Setup (new terminal)
 ```bash
-# From root directory
-npm run dev
+cd frontend
+npm install
+npm start       # Start frontend
 ```
 
-This will start both backend (port 5000) and frontend (port 3000) servers.
+**Default Login:**
+- Email: `admin@example.com`
+- Password: `password123`
 
 ## Development
+
 
 - Backend API: http://localhost:5000
 - Frontend App: http://localhost:3000
 
 ## Documentation
 
+- [Setup Guide (Detailed)](./SETUP_GUIDE.md) - Cross-platform setup instructions
 - [Architecture Documentation](./Architecture.md)
 - [Time Estimates](./TIME_ESTIMATE.md)
+
 
 ## License
 
