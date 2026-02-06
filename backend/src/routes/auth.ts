@@ -110,6 +110,7 @@ router.post(
       // Find user
       const user = await User.findOne({ email });
       if (!user) {
+        console.log(`❌ LOGIN FAILED: User not found in database: "${email}"`);
         res.status(401).json({
           success: false,
           message: 'Invalid credentials'
@@ -120,6 +121,8 @@ router.post(
       // Check password
       const isMatch = await user.comparePassword(password);
       if (!isMatch) {
+        console.log(`❌ LOGIN FAILED: Password mismatch for user: "${email}"`);
+        console.log(`Tip: Make sure you ran the latest "npm run seed" to reset the password.`);
         res.status(401).json({
           success: false,
           message: 'Invalid credentials'
@@ -129,12 +132,16 @@ router.post(
 
       // Check if user is active
       if (!user.isActive) {
+        console.log(`❌ LOGIN FAILED: Account is locked/inactive for: "${email}"`);
         res.status(401).json({
           success: false,
           message: 'Account is inactive'
         });
         return;
       }
+
+      console.log(`✅ LOGIN SUCCESS: User "${email}" authenticated successfully.`);
+
 
       // Update last login
       user.lastLogin = new Date();

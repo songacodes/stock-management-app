@@ -41,12 +41,15 @@ const seedUsers = async () => {
         for (const u of users) {
             const exists = await User.findOne({ email: u.email });
             if (exists) {
-                console.log(`User ${u.email} already exists`);
-                // Optional: Update role if needed
+                console.log(`User ${u.email} already exists. Updating...`);
                 exists.role = u.role as any;
+                exists.password = u.password;
+                exists.isActive = true; // Ensure they are active!
                 if (u.shopId) exists.shopId = u.shopId;
                 await exists.save();
             } else {
+
+
                 await User.create(u);
                 console.log(`User ${u.email} created`);
             }
