@@ -94,10 +94,17 @@ taskkill /F /IM node.exe
 
 **Mac/Linux:**
 ```bash
+sudo lsof -i :5000
+kill -9 <PID>
+# OR simply:
 pkill node
 ```
 
+> **🍎 Mac Tip:** On macOS Monterey/Ventura/Sonoma, your computer might be using Port 5000 for **AirPlay Receiver**.  
+> **To fix:** Go to `System Settings` > `General` > `AirPlay & Handoff` and **Turn OFF** "AirPlay Receiver".
+
 Then restart the backend.
+
 
 ### Need more help?
 

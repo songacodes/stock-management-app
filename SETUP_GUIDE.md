@@ -86,7 +86,12 @@ Frontend runs on **http://localhost:3000**
 
 ### "Port 5000 already in use"
 - **Windows:** `taskkill /F /IM node.exe`
-- **Mac/Linux:** `pkill node`
+- **Mac/Linux:**
+  - Option 1: `pkill node`
+  - Option 2: `sudo lsof -i :5000` then `kill -9 <PID>`
+  - **Apple Tip:** If you are on macOS Monterey or newer (Ventura, Sonoma, Sequoia), port 5000 is used by **AirPlay Receiver**.  
+    **Fix:** Go to `System Settings` > `General` > `AirPlay & Handoff` and **Turn OFF** "AirPlay Receiver".
+
 
 ### "Users don't exist / Can't login"
 - Run `npm run seed` in the backend folder
