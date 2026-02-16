@@ -20,16 +20,20 @@ import {
   TableRow,
   Paper,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import {
   Inventory as InventoryIcon,
   TrendingUp as TrendingUpIcon,
   Warning as WarningIcon,
   Add as AddIcon,
   ArrowForward as ArrowForwardIcon,
+  Security as SecurityIcon,
 } from '@mui/icons-material';
+import axios from 'axios';
 import { RootState, useAppDispatch } from '../store/store';
 import { fetchTiles } from '../store/slices/tileSlice';
 import { generateNotifications } from '../store/slices/notificationSlice';
+import { fetchShopDetails } from '../store/slices/shopSlice';
 import { formatRWF } from '../utils/currency';
 
 // Animated Counter Component
@@ -65,23 +69,25 @@ const StatCard: React.FC<{
 }> = ({ title, value, subtitle, icon, color, gradient }) => {
   return (
     <Card
+      className="depth-3d"
       sx={{
         position: 'relative',
         overflow: 'hidden',
-        background: 'rgba(255, 255, 255, 0.9)',
-        backdropFilter: 'blur(20px)',
-        border: `2px solid ${color}`,
-        color: 'text.primary',
-        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+        background: (theme) => theme.palette.mode === 'dark'
+          ? alpha(theme.palette.background.paper, 0.2)
+          : theme.palette.background.paper,
+        backdropFilter: 'blur(16px)',
+        borderRadius: 1,
+        border: (theme) => `1px solid ${alpha(color, 0.15)}`,
         cursor: 'pointer',
-        '&:hover': {
-          boxShadow: `0 10px 20px -5px ${color}40`,
-          border: `3px solid ${color}`,
-          '& .stat-icon': {
-            background: `linear-gradient(135deg, ${gradient})`,
-            color: '#ffffff',
-          },
+        '& .stat-icon': {
+          transition: 'all 0.5s ease',
         },
+        '&:hover .stat-icon': {
+          background: color,
+          color: '#fff',
+          boxShadow: `0 0 20px ${alpha(color, 0.4)}`,
+        }
       }}
     >
       <CardContent sx={{ position: 'relative', p: 3 }}>
@@ -124,15 +130,14 @@ const StatCard: React.FC<{
           <Box
             className="stat-icon"
             sx={{
-              width: 64,
-              height: 64,
-              borderRadius: 3,
-              background: alpha(color, 0.1),
-              border: `2px solid ${color}`,
+              width: 52,
+              height: 52,
+              borderRadius: 1,
+              background: (theme) => theme.palette.mode === 'dark' ? alpha(color, 0.1) : alpha(color, 0.05),
+              border: (theme) => `1px solid ${alpha(color, 0.2)}`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              transition: 'all 0.4s ease',
               color: color,
             }}
           >
@@ -145,13 +150,45 @@ const StatCard: React.FC<{
 };
 
 const Dashboard: React.FC = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { tiles, loading } = useSelector((state: RootState) => state.tiles);
+  const { currentShop } = useSelector((state: RootState) => state.shop);
+  const { user, token } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
     dispatch(fetchTiles({}));
   }, [dispatch]);
+
+  // Fetch shop details if not loaded
+  useEffect(() => {
+    if (user?.shopId && !currentShop) {
+      dispatch(fetchShopDetails(user.shopId));
+    }
+  }, [user, currentShop, dispatch]);
+
+  const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
+
+  const fetchPendingApprovals = async () => {
+    if (user?.role !== 'grand_admin') return;
+    try {
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+      const res = await axios.get(`${API_URL}/auth/staff`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const pending = res.data.data.filter((s: any) => s.passwordStatus === 'pending_approval');
+      setPendingApprovals(pending);
+    } catch (err) {
+      console.error('Failed to fetch approvals:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.role === 'grand_admin') {
+      fetchPendingApprovals();
+    }
+  }, [user]);
 
   // Generate notifications when tiles are loaded
   useEffect(() => {
@@ -168,12 +205,14 @@ const Dashboard: React.FC = () => {
     );
   }
 
+  const lowStockThreshold = currentShop?.settings?.lowStockThreshold || 50;
+
   const totalTiles = tiles.length;
-  const totalQuantity = tiles.reduce((sum, tile) => sum + (tile.quantity || 0), 0);
-  const totalPackets = tiles.reduce((sum, tile) => sum + Math.floor((tile.quantity || 0) / (tile.itemsPerPacket || 1)), 0);
-  const lowStockCount = tiles.filter(tile => (tile.quantity || 0) > 0 && (tile.quantity || 0) < 50).length; // Low stock threshold
-  const outOfStockCount = tiles.filter(tile => (tile.quantity || 0) <= 0).length;
-  const inStockCount = tiles.filter(tile => (tile.quantity || 0) > 0).length;
+  const totalQuantity = tiles.reduce((sum: number, tile: any) => sum + (tile.quantity || 0), 0);
+  const totalPackets = tiles.reduce((sum: number, tile: any) => sum + Math.floor((tile.quantity || 0) / (tile.itemsPerPacket || 1)), 0);
+  const lowStockCount = tiles.filter((tile: any) => (tile.quantity || 0) > 0 && (tile.quantity || 0) < lowStockThreshold).length; // Dynamic threshold
+  const outOfStockCount = tiles.filter((tile: any) => (tile.quantity || 0) <= 0).length;
+  const inStockCount = tiles.filter((tile: any) => (tile.quantity || 0) > 0).length;
 
   const recentTiles = tiles.slice(0, 6);
 
@@ -183,14 +222,16 @@ const Dashboard: React.FC = () => {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Box>
           <Typography
-            variant="h4"
+            variant="h3"
             sx={{
-              fontWeight: 700,
-              mb: 0.5,
-              background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+              fontWeight: 900,
+              mb: 1,
+              letterSpacing: '-0.04em',
+              background: (theme) => theme.palette.mode === 'dark'
+                ? `linear-gradient(135deg, #fff 0%, ${alpha(theme.palette.primary.light, 0.8)} 100%)`
+                : `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
             }}
           >
             Dashboard Overview
@@ -202,19 +243,21 @@ const Dashboard: React.FC = () => {
         <IconButton
           onClick={() => navigate('/tiles/create')}
           sx={{
-            background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+            background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
             color: '#ffffff',
-            width: 48,
-            height: 48,
-            boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.4)',
+            width: 54,
+            height: 54,
+            borderRadius: 1,
+            boxShadow: (theme) => `0 8px 16px ${alpha(theme.palette.primary.main, 0.3)}`,
             '&:hover': {
-              background: 'linear-gradient(135deg, #1e40af 0%, #6d28d9 100%)',
-              boxShadow: '0 6px 20px 0 rgba(37, 99, 235, 0.5)',
+              transform: 'scale(1.05) rotate(90deg)',
+              background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.secondary.light} 100%)`,
+              boxShadow: (theme) => `0 12px 24px ${alpha(theme.palette.primary.main, 0.4)}`,
             },
-            transition: 'all 0.2s ease',
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
         >
-          <AddIcon />
+          <AddIcon sx={{ fontSize: 28 }} />
         </IconButton>
       </Box>
 
@@ -252,37 +295,152 @@ const Dashboard: React.FC = () => {
         </Grid>
       </Grid>
 
+      {/* Low Stock Section */}
+      {lowStockCount > 0 && (
+        <Paper
+          elevation={0}
+          sx={{
+            borderRadius: 1,
+            mb: 4,
+            border: (theme) => `1px solid ${theme.palette.mode === 'dark' ? alpha(theme.palette.error.main, 0.4) : alpha(theme.palette.error.main, 0.2)}`,
+            background: (theme) => theme.palette.mode === 'dark'
+              ? alpha(theme.palette.error.dark, 0.1)
+              : alpha(theme.palette.error.light, 0.05),
+            overflow: 'hidden',
+          }}
+        >
+          <Box sx={{ p: 3, borderBottom: '1px solid rgba(239, 68, 68, 0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <WarningIcon sx={{ color: theme.palette.error.main }} />
+              <Typography variant="h6" sx={{ fontWeight: 800, color: theme.palette.error.main, letterSpacing: '-0.01em' }}>
+                Stock Threshold Alerts
+              </Typography>
+            </Box>
+            <MuiButton
+              variant="contained"
+              color="error"
+              size="small"
+              onClick={() => navigate('/stock/add')}
+              sx={{ fontWeight: 600, textTransform: 'none', borderRadius: 1 }}
+            >
+              Add Stock Now
+            </MuiButton>
+          </Box>
+          <TableContainer>
+            <Table>
+              <TableHead sx={{ bgcolor: alpha('#ef4444', 0.05) }}>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 600 }}>Product</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>SKU</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Current Stock</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
+                  <TableCell align="right"></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {tiles
+                  .filter(tile => (tile.quantity || 0) < lowStockThreshold)
+                  .sort((a, b) => (a.quantity || 0) - (b.quantity || 0))
+                  .slice(0, 5)
+                  .map((tile) => (
+                    <TableRow key={tile._id} hover>
+                      <TableCell sx={{ fontWeight: 600 }}>{tile.name}</TableCell>
+                      <TableCell>
+                        <Chip label={tile.sku} size="small" variant="outlined" sx={{ borderRadius: 1, fontFamily: 'monospace' }} />
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" sx={{ color: tile.quantity <= 0 ? '#ef4444' : '#f59e0b', fontWeight: 700 }}>
+                          {tile.quantity} pcs
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={tile.quantity <= 0 ? 'Out of Stock' : 'Critical'}
+                          size="small"
+                          sx={{
+                            bgcolor: tile.quantity <= 0 ? alpha(theme.palette.error.main, 0.1) : alpha(theme.palette.warning.main, 0.1),
+                            color: tile.quantity <= 0 ? theme.palette.error.main : theme.palette.warning.main,
+                            fontWeight: 700,
+                            borderRadius: '6px',
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell align="right">
+                        <IconButton size="small" onClick={() => navigate(`/tiles/${tile._id}`)}>
+                          <ArrowForwardIcon fontSize="small" />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
+      )}
+
+      {/* Administrative Alerts */}
+      {user?.role === 'grand_admin' && pendingApprovals.length > 0 && (
+        <Paper
+          elevation={0}
+          sx={{
+            borderRadius: 1,
+            mb: 4,
+            border: (theme) => `1px solid ${alpha(theme.palette.warning.main, 0.4)}`,
+            background: (theme) => alpha(theme.palette.warning.main, 0.05),
+            overflow: 'hidden',
+          }}
+        >
+          <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <SecurityIcon sx={{ color: theme.palette.warning.main }} />
+              <Typography variant="h6" sx={{ fontWeight: 800, color: theme.palette.warning.main }}>
+                {pendingApprovals.length} Pending Password Approvals
+              </Typography>
+            </Box>
+            <MuiButton
+              variant="contained"
+              color="warning"
+              size="small"
+              onClick={() => navigate('/settings')}
+              sx={{ fontWeight: 700, borderRadius: 1 }}
+            >
+              Review & Approve
+            </MuiButton>
+          </Box>
+        </Paper>
+      )}
+
       {/* Inventory Snapshot Section */}
       <Paper
+        elevation={0}
         sx={{
-          borderRadius: 4,
-          background: 'rgba(255, 255, 255, 0.9)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.3)',
-          boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.1)',
+          borderRadius: 1,
+          border: (theme) => `1px solid ${theme.palette.divider}`,
+          background: (theme) => theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.3) : '#ffffff',
           overflow: 'hidden',
         }}
       >
-        <Box sx={{ p: 3, borderBottom: '1px solid rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            Inventory Snapshot
+        <Box sx={{ p: 4, borderBottom: (theme) => `1px solid ${theme.palette.divider}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
+            Inventory Status
           </Typography>
           <MuiButton
             endIcon={<ArrowForwardIcon />}
             onClick={() => navigate('/tiles')}
+            variant="text"
             sx={{
-              fontWeight: 600,
-              textTransform: 'none',
-              '&:hover': { bgcolor: 'rgba(37, 99, 235, 0.08)' }
+              fontWeight: 700,
+              borderRadius: 1,
+              px: 3,
             }}
           >
-            View Full Inventory
+            See More
           </MuiButton>
         </Box>
 
         <TableContainer>
           <Table>
-            <TableHead sx={{ bgcolor: '#f8fafc' }}>
+            <TableHead sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? '#0d1117' : '#f8fafc' }}>
               <TableRow>
                 <TableCell sx={{ fontWeight: 600 }}>Product Name</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>SKU</TableCell>

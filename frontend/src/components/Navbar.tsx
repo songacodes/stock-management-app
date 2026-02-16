@@ -101,12 +101,9 @@ const Navbar: React.FC = () => {
       position="sticky"
       elevation={0}
       sx={{
-        background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.95) 0%, rgba(124, 58, 237, 0.95) 100%)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-        boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
         borderRadius: 0,
+        backgroundColor: (theme) => theme.palette.mode === 'dark' ? '#04070a' : '#fff',
+        borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
       }}
     >
       <Toolbar sx={{ px: { xs: 2, md: 4 }, py: 1.5 }}>
@@ -129,36 +126,46 @@ const Navbar: React.FC = () => {
             alignItems: 'center',
             cursor: 'pointer',
             mr: { xs: 2, md: 4 },
-            transition: 'transform 0.3s ease',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             '&:hover': {
-              transform: 'scale(1.05)',
+              transform: 'scale(1.02)',
+              '& .logo-box': {
+                transform: 'rotate(-5deg) scale(1.1)',
+                boxShadow: theme.palette.mode === 'dark'
+                  ? `0 0 20px ${alpha(theme.palette.primary.main, 0.4)}`
+                  : `0 0 20px ${alpha(theme.palette.primary.main, 0.2)}`,
+              }
             },
           }}
         >
-          {/* ... Logo content same as before ... */}
           <Box
+            className="logo-box"
             sx={{
-              width: 40,
-              height: 40,
-              borderRadius: 2,
-              background: 'linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%)',
+              width: 38,
+              height: 38,
+              borderRadius: 1,
+              background: theme.palette.mode === 'dark'
+                ? `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`
+                : theme.palette.primary.main,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              mr: 1.5,
-              boxShadow: '0 4px 14px 0 rgba(0, 0, 0, 0.2)',
+              mr: 2,
+              transition: 'all 0.2s ease',
             }}
           >
-            <InventoryIcon sx={{ color: '#2563eb', fontSize: 24 }} />
+            <InventoryIcon sx={{ color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.primary.main, fontSize: 26 }} />
           </Box>
           <Typography
             variant="h6"
             sx={{
-              fontWeight: 700,
-              background: 'linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.9) 100%)',
+              fontWeight: 800,
+              letterSpacing: '-0.02em',
+              background: theme.palette.mode === 'dark'
+                ? 'linear-gradient(90deg, #fff 0%, #cbd5e1 100%)'
+                : 'linear-gradient(90deg, #1e293b 0%, #64748b 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
               display: { xs: 'none', sm: 'block' },
             }}
           >
@@ -178,47 +185,39 @@ const Navbar: React.FC = () => {
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  px: 2,
+                  px: 2.5,
                   py: 1,
-                  borderRadius: 2,
+                  borderRadius: 3,
                   cursor: 'pointer',
                   position: 'relative',
-                  transition: 'all 0.3s ease',
-                  whiteSpace: 'nowrap', // Prevent text wrapping
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  whiteSpace: 'nowrap',
                   background: active
-                    ? 'rgba(255, 255, 255, 0.2)'
+                    ? alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.15 : 0.08)
                     : 'transparent',
+                  color: active
+                    ? theme.palette.primary.main
+                    : theme.palette.text.secondary,
                   '&:hover': {
-                    background: 'rgba(255, 255, 255, 0.15)',
-                    transform: 'translateY(-2px)',
+                    background: alpha(theme.palette.primary.main, 0.05),
+                    color: theme.palette.primary.main,
+                    transform: 'translateY(-1px)',
                   },
-                  '&::before': active
-                    ? {
-                      content: '""',
-                      position: 'absolute',
-                      bottom: 0,
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      width: '60%',
-                      height: 3,
-                      background: 'linear-gradient(90deg, transparent, #ffffff, transparent)',
-                      borderRadius: '0 0 2px 2px',
-                    }
-                    : {},
                 }}
               >
                 <Icon
                   sx={{
                     fontSize: 20,
-                    mr: 1,
-                    color: active ? '#ffffff' : 'rgba(255, 255, 255, 0.8)',
+                    mr: 1.2,
+                    transition: 'transform 0.3s ease',
+                    transform: active ? 'scale(1.1)' : 'scale(1)',
                   }}
                 />
                 <Typography
                   sx={{
-                    color: active ? '#ffffff' : 'rgba(255, 255, 255, 0.9)',
-                    fontWeight: active ? 600 : 400,
-                    fontSize: '0.9375rem',
+                    fontWeight: active ? 700 : 500,
+                    fontSize: '0.9rem',
+                    letterSpacing: '0.01em',
                   }}
                 >
                   {item.label}
@@ -234,21 +233,25 @@ const Navbar: React.FC = () => {
             sx={{
               display: { xs: 'none', md: 'flex' },
               position: 'relative',
-              borderRadius: 3,
-              backgroundColor: alpha('#ffffff', 0.15),
-              backdropFilter: 'blur(10px)',
-              '&:hover': {
-                backgroundColor: alpha('#ffffff', 0.2),
-              },
+              borderRadius: 1,
+              backgroundColor: theme.palette.mode === 'dark'
+                ? '#111827'
+                : alpha(theme.palette.common.black, 0.03),
+              border: (theme) => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.14)' : theme.palette.divider}`,
+              transition: 'all 0.3s ease',
               marginRight: 2,
-              width: searchOpen ? 300 : 200,
-              transition: 'width 0.3s ease',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
+              width: searchOpen ? 320 : 240,
+              '&:hover, &.Mui-focused': {
+                backgroundColor: theme.palette.mode === 'dark'
+                  ? alpha(theme.palette.common.white, 0.05)
+                  : alpha(theme.palette.common.black, 0.05),
+                borderColor: alpha(theme.palette.primary.main, 0.3),
+              },
             }}
           >
             <Box
               sx={{
-                padding: '8px 12px',
+                padding: '0 14px',
                 height: '100%',
                 position: 'absolute',
                 pointerEvents: 'none',
@@ -257,36 +260,30 @@ const Navbar: React.FC = () => {
                 justifyContent: 'center',
               }}
             >
-              <SearchIcon sx={{ color: 'rgba(255, 255, 255, 0.7)' }} />
+              <SearchIcon sx={{ color: theme.palette.text.secondary, fontSize: 20 }} />
             </Box>
             <InputBase
-              placeholder="Search tiles..."
+              placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
-                // Optional: Search as you type
                 if (e.target.value.length > 2) {
                   navigate(`/tiles?q=${encodeURIComponent(e.target.value)}`);
-                }
-              }}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  navigate(`/tiles?q=${encodeURIComponent(searchQuery)}`);
                 }
               }}
               onFocus={() => setSearchOpen(true)}
               onBlur={() => setSearchOpen(false)}
               sx={{
-                color: '#ffffff',
+                color: theme.palette.text.primary,
                 width: '100%',
                 pl: 5,
                 pr: 2,
-                py: 1,
+                py: 0.8,
+                fontSize: '0.9rem',
                 '& .MuiInputBase-input': {
-                  color: '#ffffff',
                   '&::placeholder': {
-                    color: 'rgba(255, 255, 255, 0.6)',
-                    opacity: 1,
+                    color: theme.palette.text.secondary,
+                    opacity: 0.8,
                   },
                 },
               }}
@@ -298,14 +295,23 @@ const Navbar: React.FC = () => {
         <IconButton
           onClick={(e) => setNotificationAnchorEl(e.currentTarget)}
           sx={{
-            color: '#ffffff',
+            color: theme.palette.text.primary,
             mr: 1,
             '&:hover': {
-              background: 'rgba(255, 255, 255, 0.1)',
+              background: alpha(theme.palette.primary.main, 0.08),
             },
           }}
         >
-          <Badge badgeContent={unreadCount} color="error">
+          <Badge
+            badgeContent={unreadCount}
+            color="error"
+            sx={{
+              '& .MuiBadge-badge': {
+                fontWeight: 700,
+                boxShadow: `0 0 0 2px ${theme.palette.background.paper}`,
+              }
+            }}
+          >
             <NotificationsIcon />
           </Badge>
         </IconButton>
@@ -323,16 +329,17 @@ const Navbar: React.FC = () => {
             gap: 1.5,
             ml: 2,
             pl: 2,
-            borderLeft: '1px solid rgba(255, 255, 255, 0.2)',
+            borderLeft: `1px solid ${theme.palette.divider}`,
           }}
         >
           <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
             <Typography
               variant="body2"
               sx={{
-                color: '#ffffff',
-                fontWeight: 500,
+                color: theme.palette.text.primary,
+                fontWeight: 700,
                 textAlign: 'right',
+                lineHeight: 1.2,
               }}
             >
               {user?.name || 'Admin'}
@@ -340,8 +347,11 @@ const Navbar: React.FC = () => {
             <Typography
               variant="caption"
               sx={{
-                color: 'rgba(255, 255, 255, 0.7)',
-                fontSize: '0.75rem',
+                color: theme.palette.text.secondary,
+                fontSize: '0.7rem',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
               }}
             >
               Administrator
@@ -350,10 +360,10 @@ const Navbar: React.FC = () => {
           <IconButton
             onClick={handleMenuOpen}
             sx={{
-              p: 0,
-              border: '2px solid rgba(255, 255, 255, 0.3)',
+              p: 0.5,
+              border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
               '&:hover': {
-                border: '2px solid rgba(255, 255, 255, 0.5)',
+                border: `2px solid ${theme.palette.primary.main}`,
                 transform: 'scale(1.05)',
               },
               transition: 'all 0.3s ease',
@@ -361,11 +371,15 @@ const Navbar: React.FC = () => {
           >
             <Avatar
               sx={{
-                width: 40,
-                height: 40,
-                background: 'linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%)',
-                color: '#2563eb',
-                fontWeight: 600,
+                width: 36,
+                height: 36,
+                background: theme.palette.mode === 'dark'
+                  ? `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`
+                  : `linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)`,
+                color: '#ffffff',
+                fontSize: '0.9rem',
+                fontWeight: 700,
+                boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)',
               }}
             >
               {user?.name?.charAt(0).toUpperCase() || 'A'}
@@ -383,22 +397,23 @@ const Navbar: React.FC = () => {
               mt: 1.5,
               minWidth: 200,
               borderRadius: 2,
-              boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(20px)',
+              bgcolor: 'background.paper',
+              border: (theme) => `1px solid ${theme.palette.divider}`,
+              backgroundImage: 'none',
             },
           }}
           transformOrigin={{ horizontal: 'right', vertical: 'top' }}
           anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
         >
-          <MenuItem onClick={handleMenuClose}>
+          <MenuItem onClick={() => { navigate('/settings'); handleMenuClose(); }}>
             <PersonIcon sx={{ mr: 2, fontSize: 20 }} />
             Profile
           </MenuItem>
-          <MenuItem onClick={handleMenuClose}>
+          <MenuItem onClick={() => { navigate('/settings'); handleMenuClose(); }}>
             <SettingsIcon sx={{ mr: 2, fontSize: 20 }} />
             Settings
           </MenuItem>
+
           <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
             <LogoutIcon sx={{ mr: 2, fontSize: 20 }} />
             Logout

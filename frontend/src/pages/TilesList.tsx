@@ -24,6 +24,7 @@ import {
   Paper,
   Tooltip,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import {
   Add as AddIcon,
   Search as SearchIcon,
@@ -41,6 +42,7 @@ import { formatRWF } from '../utils/currency';
 import { getImageUrl } from '../utils/imageUrl';
 
 const TilesList: React.FC = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useAppDispatch();
@@ -114,20 +116,22 @@ const TilesList: React.FC = () => {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
         <Box>
           <Typography
-            variant="h4"
+            variant="h3"
             sx={{
-              fontWeight: 700,
-              mb: 0.5,
-              background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+              fontWeight: 900,
+              letterSpacing: '-0.04em',
+              background: (theme) => theme.palette.mode === 'dark'
+                ? `linear-gradient(135deg, #fff 0%, ${alpha(theme.palette.primary.light, 0.8)} 100%)`
+                : `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
+              mb: 0.5
             }}
           >
             Product Catalog
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Manage your tile inventory ({filteredTiles.length} products)
+          <Typography variant="body1" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+            Curate and manage your high-quality tile collection ({filteredTiles.length} items)
           </Typography>
         </Box>
         <Button
@@ -135,17 +139,19 @@ const TilesList: React.FC = () => {
           startIcon={<AddIcon />}
           onClick={() => navigate('/tiles/create')}
           sx={{
-            background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
-            boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.4)',
+            py: 1.5,
+            px: 4,
+            borderRadius: '14px',
+            fontWeight: 700,
+            boxShadow: (theme) => `0 8px 16px ${alpha(theme.palette.primary.main, 0.2)}`,
+            background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
             '&:hover': {
-              background: 'linear-gradient(135deg, #1e40af 0%, #6d28d9 100%)',
-              transform: 'translateY(-2px)',
-              boxShadow: '0 6px 20px 0 rgba(37, 99, 235, 0.5)',
-            },
-            transition: 'all 0.3s ease',
+              boxShadow: (theme) => `0 12px 24px ${alpha(theme.palette.primary.main, 0.3)}`,
+              transform: 'translateY(-2px)'
+            }
           }}
         >
-          Add New Tile
+          Add New Product
         </Button>
       </Box>
 
@@ -164,50 +170,35 @@ const TilesList: React.FC = () => {
             flex: 1,
             minWidth: 300,
             position: 'relative',
-            borderRadius: 3,
-            backgroundColor: alpha('#ffffff', 0.8),
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(0, 0, 0, 0.05)',
-            '&:hover': {
-              backgroundColor: alpha('#ffffff', 0.95),
-            },
+            borderRadius: '14px',
+            backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.03) : alpha(theme.palette.common.black, 0.03),
+            border: `1px solid ${theme.palette.divider}`,
+            display: 'flex',
+            alignItems: 'center',
+            px: 2.5,
             transition: 'all 0.3s ease',
+            '&:focus-within': {
+              borderColor: theme.palette.primary.main,
+              bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.05) : alpha(theme.palette.common.black, 0.01),
+              boxShadow: `0 0 0 4px ${alpha(theme.palette.primary.main, 0.1)}`
+            }
           }}
         >
-          <Box
-            sx={{
-              padding: '10px 14px',
-              height: '100%',
-              position: 'absolute',
-              pointerEvents: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <SearchIcon sx={{ color: 'text.secondary' }} />
-          </Box>
+          <SearchIcon sx={{ color: 'text.secondary', mr: 1.5, fontSize: 22 }} />
           <InputBase
-            placeholder="Search by name or SKU..."
+            placeholder="Search catalog by name or SKU..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            sx={{
-              color: 'text.primary',
-              width: '100%',
-              pl: 5,
-              pr: 2,
-              py: 1.5,
-            }}
+            sx={{ flex: 1, py: 1.2, fontWeight: 500 }}
           />
         </Box>
         <IconButton
           onClick={handleFilterClick}
           sx={{
-            backgroundColor: alpha('#ffffff', 0.8),
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(0, 0, 0, 0.05)',
+            backgroundColor: 'background.paper',
+            border: (theme) => `1px solid ${theme.palette.divider}`,
             '&:hover': {
-              backgroundColor: alpha('#ffffff', 0.95),
+              backgroundColor: 'action.hover',
             },
           }}
         >
@@ -217,11 +208,10 @@ const TilesList: React.FC = () => {
           sx={{
             display: 'flex',
             gap: 0.5,
-            backgroundColor: alpha('#ffffff', 0.8),
-            backdropFilter: 'blur(10px)',
+            backgroundColor: 'background.paper',
             borderRadius: 2,
             p: 0.5,
-            border: '1px solid rgba(0, 0, 0, 0.05)',
+            border: (theme) => `1px solid ${theme.palette.divider}`,
           }}
         >
           <IconButton
@@ -262,10 +252,9 @@ const TilesList: React.FC = () => {
           sx={{
             textAlign: 'center',
             py: 8,
-            backgroundColor: alpha('#ffffff', 0.8),
-            backdropFilter: 'blur(10px)',
+            backgroundColor: 'background.paper',
             borderRadius: 4,
-            border: '1px solid rgba(0, 0, 0, 0.05)',
+            border: (theme) => `1px solid ${theme.palette.divider}`,
           }}
         >
           <Typography variant="h6" gutterBottom color="text.secondary">
@@ -288,7 +277,7 @@ const TilesList: React.FC = () => {
         // LIST VIEW IMPLEMENTATION
         <TableContainer component={Paper} elevation={0} sx={{ borderRadius: 2, border: '1px solid rgba(0,0,0,0.08)' }}>
           <Table>
-            <TableHead sx={{ bgcolor: '#f8fafc' }}>
+            <TableHead sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? alpha(theme.palette.primary.main, 0.1) : '#f8fafc' }}>
               <TableRow>
                 <TableCell>Image</TableCell>
                 <TableCell>Name</TableCell>
@@ -305,7 +294,7 @@ const TilesList: React.FC = () => {
                       component="img"
                       src={getImageUrl(tile.images?.[0]?.url)}
                       alt={tile.name}
-                      sx={{ width: 48, height: 48, borderRadius: 1, objectFit: 'cover', bgcolor: '#f0f0f0' }}
+                      sx={{ width: 48, height: 48, borderRadius: 1, objectFit: 'cover', bgcolor: 'action.hover' }}
                       onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/48?text=Tile'; }}
                     />
                   </TableCell>
@@ -348,15 +337,14 @@ const TilesList: React.FC = () => {
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%)',
-                  backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                  background: (theme) => theme.palette.mode === 'dark' ? '#111827' : theme.palette.background.paper,
+                  border: (theme) => theme.palette.mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.14)' : `1px solid ${theme.palette.divider}`,
+                  borderRadius: 1,
+                  boxShadow: 'none',
                   overflow: 'hidden',
+                  transition: 'all 0.2s ease',
                   '&:hover': {
-                    boxShadow: '0 10px 15px -3px rgba(37, 99, 235, 0.2)',
-                    border: '1px solid rgba(37, 99, 235, 0.3)',
+                    borderColor: 'primary.main',
                     '& .tile-overlay': {
                       opacity: 1,
                     },
@@ -428,8 +416,8 @@ const TilesList: React.FC = () => {
                       top: 12,
                       right: 12,
                       fontWeight: 600,
-                      backdropFilter: 'blur(10px)',
-                      backgroundColor: alpha('#ffffff', 0.9),
+                      backgroundColor: 'background.paper',
+                      border: (theme) => `1px solid ${theme.palette.divider}`,
                     }}
                   />
                 </Box>
@@ -460,7 +448,7 @@ const TilesList: React.FC = () => {
                   >
                     {tile.sku}
                   </Typography>
-                  <Box sx={{ mt: 'auto', pt: 1.5, borderTop: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                  <Box sx={{ mt: 'auto', pt: 1.5, borderTop: (theme) => `1px solid ${theme.palette.divider}` }}>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
                       <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
                         Qty: {tile.quantity || 0}

@@ -20,23 +20,32 @@ import {
 } from '@mui/material';
 import { Warning as WarningIcon } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
-import { RootState } from '../store/store';
+import { RootState, useAppDispatch } from '../store/store';
 import { useNavigate } from 'react-router-dom';
+import { fetchShopDetails } from '../store/slices/shopSlice';
 
-// Threshold for low stock (total pieces)
-// You could make this dynamic later
-const LOW_STOCK_THRESHOLD = 50;
+// Multi-line replacement to remove the const
 
 const LowStockAlert: React.FC = () => {
+    const dispatch = useAppDispatch();
     const [open, setOpen] = useState(false);
     const { tiles } = useSelector((state: RootState) => state.tiles);
     const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+    const { currentShop } = useSelector((state: RootState) => state.shop);
     const navigate = useNavigate();
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
 
+    useEffect(() => {
+        if (user?.shopId && !currentShop) {
+            dispatch(fetchShopDetails(user.shopId));
+        }
+    }, [user, currentShop, dispatch]);
+
+    const lowStockThreshold = currentShop?.settings?.lowStockThreshold || 50;
+
     // Check for low stock items
-    const lowStockTiles = tiles.filter(tile => tile.quantity < LOW_STOCK_THRESHOLD);
+    const lowStockTiles = tiles.filter((tile: any) => tile.quantity < lowStockThreshold);
 
     useEffect(() => {
         // Show alert if authenticated, there are low stock items, and we haven't shown it this session
@@ -79,44 +88,96 @@ const LowStockAlert: React.FC = () => {
             fullWidth
             PaperProps={{
                 sx: {
-                    borderTop: `6px solid ${theme.palette.error.main}`,
-                    borderRadius: 2
+                    borderRadius: '24px',
+                    overflow: 'hidden',
+                    border: (theme) => theme.palette.mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
+                    boxShadow: (theme) => theme.palette.mode === 'dark'
+                        ? '0 25px 50px -12px rgba(0, 0, 0, 0.7)'
+                        : '0 25px 50px -12px rgba(0, 0, 0, 0.1)',
                 }
             }}
         >
-            <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 2, bgcolor: alpha(theme.palette.error.light, 0.1) }}>
-                <WarningIcon color="error" sx={{ fontSize: 40 }} />
+            <DialogTitle sx={{
+                p: 4,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 3,
+                background: theme.palette.mode === 'dark'
+                    ? `linear-gradient(135deg, ${alpha(theme.palette.error.dark, 0.2)} 0%, ${alpha(theme.palette.background.paper, 0)} 100%)`
+                    : `linear-gradient(135deg, ${alpha(theme.palette.error.light, 0.1)} 0%, ${alpha(theme.palette.background.paper, 0)} 100%)`,
+                borderBottom: `1px solid ${theme.palette.divider}`
+            }}>
+                <Box sx={{
+                    width: 60,
+                    height: 60,
+                    borderRadius: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: alpha(theme.palette.error.main, 0.1),
+                    color: theme.palette.error.main,
+                    boxShadow: `0 8px 16px ${alpha(theme.palette.error.main, 0.1)}`
+                }}>
+                    <WarningIcon sx={{ fontSize: 32 }} />
+                </Box>
                 <Box>
-                    <Typography variant="h5" component="div" fontWeight="bold" color="error">
-                        CRITICAL STOCK ALERT
+                    <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: '-0.02em', color: theme.palette.error.main }}>
+                        Low Stock Alert
                     </Typography>
-                    <Typography variant="subtitle2" color="text.secondary">
-                        The following items are running low on stock
+                    <Typography variant="body1" sx={{ color: theme.palette.text.secondary, fontWeight: 500 }}>
+                        The following items require immediate attention
                     </Typography>
                 </Box>
             </DialogTitle>
-            <DialogContent sx={{ mt: 2 }}>
-                <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #e0e0e0' }}>
+            <DialogContent sx={{ p: 4 }}>
+                <TableContainer
+                    component={Paper}
+                    elevation={0}
+                    sx={{
+                        borderRadius: '16px',
+                        border: `1px solid ${theme.palette.divider}`,
+                        overflow: 'hidden',
+                        background: theme.palette.mode === 'dark' ? alpha(theme.palette.common.black, 0.2) : alpha(theme.palette.common.white, 0.5)
+                    }}
+                >
                     <Table>
                         <TableHead>
-                            <TableRow sx={{ bgcolor: '#f5f5f5' }}>
-                                <TableCell sx={{ fontWeight: 'bold' }}>Product Name</TableCell>
-                                <TableCell align="right" sx={{ fontWeight: 'bold' }}>SKU</TableCell>
-                                <TableCell align="right" sx={{ fontWeight: 'bold' }}>Remaining (Pcs)</TableCell>
-                                <TableCell align="right" sx={{ fontWeight: 'bold' }}>Packets (Approx)</TableCell>
+                            <TableRow sx={{ bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.02) : alpha(theme.palette.common.black, 0.02) }}>
+                                <TableCell sx={{ fontWeight: 700, borderBottom: `2px solid ${theme.palette.divider}` }}>Product</TableCell>
+                                <TableCell align="right" sx={{ fontWeight: 700, borderBottom: `2px solid ${theme.palette.divider}` }}>SKU</TableCell>
+                                <TableCell align="right" sx={{ fontWeight: 700, borderBottom: `2px solid ${theme.palette.divider}` }}>Stock</TableCell>
+                                <TableCell align="right" sx={{ fontWeight: 700, borderBottom: `2px solid ${theme.palette.divider}` }}>Estimate Packets</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {lowStockTiles.map((tile) => (
-                                <TableRow key={tile._id} hover>
+                            {lowStockTiles.map((tile: any) => (
+                                <TableRow key={tile._id} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                                     <TableCell component="th" scope="row">
-                                        <Typography fontWeight="500">{tile.name}</Typography>
-                                    </TableCell>
-                                    <TableCell align="right">{tile.sku}</TableCell>
-                                    <TableCell align="right" sx={{ color: 'error.main', fontWeight: 'bold' }}>
-                                        {tile.quantity}
+                                        <Typography sx={{ fontWeight: 600 }}>{tile.name}</Typography>
                                     </TableCell>
                                     <TableCell align="right">
+                                        <Box component="span" sx={{
+                                            px: 1,
+                                            py: 0.5,
+                                            borderRadius: '6px',
+                                            bgcolor: alpha(theme.palette.text.secondary, 0.05),
+                                            fontSize: '0.75rem',
+                                            fontFamily: 'monospace',
+                                            fontWeight: 600
+                                        }}>
+                                            {tile.sku}
+                                        </Box>
+                                    </TableCell>
+                                    <TableCell align="right">
+                                        <Box component="span" sx={{
+                                            color: theme.palette.error.main,
+                                            fontWeight: 800,
+                                            fontSize: '1.1rem'
+                                        }}>
+                                            {tile.quantity}
+                                        </Box>
+                                    </TableCell>
+                                    <TableCell align="right" sx={{ fontWeight: 500, color: theme.palette.text.secondary }}>
                                         {Math.floor(tile.quantity / (tile.itemsPerPacket || 1))}
                                     </TableCell>
                                 </TableRow>
@@ -125,19 +186,36 @@ const LowStockAlert: React.FC = () => {
                     </Table>
                 </TableContainer>
             </DialogContent>
-            <DialogActions sx={{ p: 3, bgcolor: '#f9fafb' }}>
-                <Button onClick={handleClose} color="inherit" size="large">
-                    Dismiss
+            <DialogActions sx={{ p: 4, pt: 0, justifyContent: 'space-between' }}>
+                <Button
+                    onClick={handleClose}
+                    sx={{
+                        px: 4,
+                        fontWeight: 600,
+                        color: theme.palette.text.secondary,
+                        '&:hover': { color: theme.palette.text.primary, bgcolor: alpha(theme.palette.text.primary, 0.05) }
+                    }}
+                >
+                    Ignore for now
                 </Button>
                 <Button
                     onClick={handleNavigateToStock}
                     variant="contained"
                     color="error"
-                    autoFocus
                     size="large"
+                    sx={{
+                        px: 4,
+                        py: 1.5,
+                        borderRadius: '12px',
+                        fontWeight: 700,
+                        boxShadow: `0 8px 20px ${alpha(theme.palette.error.main, 0.3)}`,
+                        '&:hover': {
+                            boxShadow: `0 12px 24px ${alpha(theme.palette.error.main, 0.4)}`,
+                        }
+                    }}
                     startIcon={<WarningIcon />}
                 >
-                    Review & Restock
+                    Go to Inventory
                 </Button>
             </DialogActions>
         </Dialog>

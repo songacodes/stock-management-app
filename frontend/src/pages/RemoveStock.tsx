@@ -17,7 +17,7 @@ import {
     Divider,
     InputAdornment,
 } from '@mui/material';
-import { alpha } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import {
     RemoveCircle as RemoveIcon,
     ArrowBack as ArrowBackIcon,
@@ -41,6 +41,7 @@ interface RemovalItem {
 }
 
 const RemoveStock: React.FC = () => {
+    const theme = useTheme();
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
     const { tiles, loading } = useSelector((state: RootState) => state.tiles);
@@ -131,31 +132,48 @@ const RemoveStock: React.FC = () => {
     }
 
     return (
-        <Box sx={{ minHeight: '100vh', bgcolor: '#fafafa', pb: 4 }}>
+        <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 4 }}>
             <Container maxWidth="xl">
                 <Button
                     startIcon={<ArrowBackIcon />}
                     onClick={() => navigate('/stock')}
-                    sx={{ mb: 2, color: 'text.secondary' }}
+                    sx={{
+                        mb: 3,
+                        color: 'text.secondary',
+                        fontWeight: 700,
+                        '&:hover': { color: 'primary.main', bgcolor: 'transparent' }
+                    }}
                 >
-                    Back to Stock Overview
+                    Return to Inventory
                 </Button>
 
-                <Box sx={{
-                    bgcolor: '#fee2e2',
-                    p: 3,
-                    borderRadius: 3,
-                    mb: 3,
-                    border: '2px solid #dc2626'
-                }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                        <RemoveIcon sx={{ fontSize: 36, color: '#dc2626' }} />
-                        <Typography variant="h4" fontWeight={700} color="#dc2626">
-                            Remove Stock from Inventory
+                <Box
+                    sx={{
+                        bgcolor: (theme) => theme.palette.mode === 'dark' ? alpha(theme.palette.error.main, 0.05) : alpha(theme.palette.error.main, 0.02),
+                        p: 3,
+                        borderRadius: 1,
+                        mb: 4,
+                        border: (theme) => `1px solid ${theme.palette.mode === 'dark' ? alpha(theme.palette.error.main, 0.3) : alpha(theme.palette.error.main, 0.1)}`,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 1
+                    }}
+                >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
+                        <RemoveIcon sx={{ fontSize: 44, color: 'error.main' }} />
+                        <Typography
+                            variant="h3"
+                            sx={{
+                                fontWeight: 900,
+                                letterSpacing: '-0.04em',
+                                color: theme.palette.error.main
+                            }}
+                        >
+                            Stock Reduction
                         </Typography>
                     </Box>
-                    <Typography variant="body1" color="text.secondary" sx={{ ml: 6 }}>
-                        Click product images to select, then enter quantities to remove
+                    <Typography variant="body1" sx={{ color: 'text.secondary', fontWeight: 500, ml: 8 }}>
+                        Record stock removals, sales, or damaged items from your persistent inventory
                     </Typography>
                 </Box>
 
@@ -168,17 +186,26 @@ const RemoveStock: React.FC = () => {
                         <Box sx={{ mb: 3 }}>
                             <TextField
                                 fullWidth
-                                placeholder="Search products..."
+                                placeholder="Search by name or reference number..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 InputProps={{
                                     startAdornment: (
                                         <InputAdornment position="start">
-                                            <SearchIcon />
+                                            <SearchIcon sx={{ color: 'text.secondary' }} />
                                         </InputAdornment>
                                     ),
                                 }}
-                                sx={{ bgcolor: 'white', borderRadius: 2 }}
+                                sx={{
+                                    bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.03) : alpha(theme.palette.common.black, 0.03),
+                                    '& .MuiOutlinedInput-root': {
+                                        borderRadius: '16px',
+                                        border: `1px solid ${theme.palette.divider}`,
+                                        '& fieldset': { borderColor: 'transparent' },
+                                        '&:hover fieldset': { borderColor: theme.palette.error.main },
+                                        '&.Mui-focused fieldset': { borderColor: theme.palette.error.main }
+                                    }
+                                }}
                             />
                         </Box>
 
@@ -193,13 +220,16 @@ const RemoveStock: React.FC = () => {
                                             onClick={() => tile.quantity > 0 && toggleSelection(tile._id)}
                                             sx={{
                                                 cursor: tile.quantity > 0 ? 'pointer' : 'default',
-                                                border: selected ? '3px solid #dc2626' : '1px solid #e5e7eb',
-                                                transition: 'all 0.2s',
+                                                border: (theme) => selected
+                                                    ? `2px solid ${theme.palette.error.main}`
+                                                    : (theme.palette.mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.14)' : `1px solid ${theme.palette.divider}`),
+                                                borderRadius: 1,
                                                 position: 'relative',
-                                                opacity: tile.quantity > 0 ? 1 : 0.8,
+                                                bgcolor: theme.palette.mode === 'dark' ? '#111827' : '#fff',
+                                                opacity: tile.quantity > 0 ? 1 : 0.6,
+                                                transition: 'all 0.2s ease',
                                                 '&:hover': {
-                                                    boxShadow: tile.quantity > 0 ? 4 : 0,
-                                                    transform: tile.quantity > 0 ? 'translateY(-4px)' : 'none',
+                                                    borderColor: tile.quantity > 0 ? theme.palette.error.main : theme.palette.divider,
                                                 },
                                             }}
                                         >
@@ -210,7 +240,7 @@ const RemoveStock: React.FC = () => {
                                                         top: 8,
                                                         right: 8,
                                                         zIndex: 1,
-                                                        bgcolor: '#dc2626',
+                                                        bgcolor: 'error.main',
                                                         borderRadius: '50%',
                                                         p: 0.5,
                                                     }}
@@ -226,14 +256,14 @@ const RemoveStock: React.FC = () => {
                                                         left: 0,
                                                         right: 0,
                                                         bottom: 0,
-                                                        bgcolor: 'rgba(255,255,255,0.7)',
+                                                        bgcolor: (theme) => alpha(theme.palette.background.paper, 0.8),
                                                         zIndex: 2,
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         justifyContent: 'center',
                                                     }}
                                                 >
-                                                    <Box sx={{ bgcolor: '#fee2e2', color: '#dc2626', px: 2, py: 0.5, borderRadius: 1, fontWeight: 'bold', fontSize: '0.875rem' }}>
+                                                    <Box sx={{ bgcolor: 'error.main', color: 'white', px: 2, py: 0.5, borderRadius: 1, fontWeight: 'bold', fontSize: '0.875rem' }}>
                                                         Out of Stock
                                                     </Box>
                                                 </Box>
@@ -266,16 +296,25 @@ const RemoveStock: React.FC = () => {
                             sx={{
                                 position: 'sticky',
                                 top: 20,
-                                bgcolor: 'white',
+                                bgcolor: 'background.paper',
                                 borderRadius: 3,
                                 p: 3,
-                                boxShadow: 3,
+                                border: (theme) => `1px solid ${theme.palette.divider}`,
                             }}
                         >
-                            <Typography variant="h6" fontWeight={700} gutterBottom>
-                                Removal Cart ({selectedItems.length})
+                            <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, letterSpacing: '-0.02em' }}>
+                                Removal List
                             </Typography>
-                            <Divider sx={{ mb: 2 }} />
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                                <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+                                    {selectedItems.length} products selected
+                                </Typography>
+                                {selectedItems.length > 0 && (
+                                    <Button size="small" variant="text" color="error" onClick={() => setSelectedItems([])} sx={{ fontWeight: 700 }}>
+                                        Clear All
+                                    </Button>
+                                )}
+                            </Box>
 
                             {selectedItems.length === 0 ? (
                                 <Typography color="text.secondary" textAlign="center" py={4}>
@@ -293,7 +332,7 @@ const RemoveStock: React.FC = () => {
                                             const totalQty = ((Number(item.packets) || 0) * itemsPerPacket) + (Number(item.pieces) || 0);
 
                                             return (
-                                                <Box key={item.tileId} sx={{ mb: 2, p: 2, bgcolor: '#f8fafc', borderRadius: 2 }}>
+                                                <Box key={item.tileId} sx={{ mb: 2, p: 2, bgcolor: (theme) => alpha(theme.palette.background.default, 0.5), borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
                                                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                                                         <Box
                                                             component="img"
@@ -355,7 +394,7 @@ const RemoveStock: React.FC = () => {
                                                     </Grid>
 
                                                     {totalQty > 0 && (
-                                                        <Box sx={{ mt: 1.5, p: 1, bgcolor: alpha('#dc2626', 0.08), borderRadius: 1.5 }}>
+                                                        <Box sx={{ mt: 1.5, p: 1, bgcolor: (theme) => alpha(theme.palette.error.main, 0.08), borderRadius: 1.5 }}>
                                                             <Typography variant="caption" color="error.main" fontWeight={700} sx={{ display: 'block' }}>
                                                                 Total Removal: {totalQty} pieces
                                                             </Typography>
@@ -392,9 +431,20 @@ const RemoveStock: React.FC = () => {
                                         size="large"
                                         startIcon={<RemoveIcon />}
                                         onClick={handleRemoveStock}
-                                        sx={{ py: 1.5 }}
+                                        sx={{
+                                            py: 2,
+                                            borderRadius: '16px',
+                                            fontWeight: 900,
+                                            fontSize: '1rem',
+                                            boxShadow: `0 12px 24px ${alpha(theme.palette.error.main, 0.3)}`,
+                                            background: `linear-gradient(135deg, ${theme.palette.error.main} 0%, ${theme.palette.error.dark} 100%)`,
+                                            '&:hover': {
+                                                boxShadow: `0 16px 32px ${alpha(theme.palette.error.main, 0.4)}`,
+                                                transform: 'translateY(-2px)'
+                                            }
+                                        }}
                                     >
-                                        Confirm Remove Stock
+                                        Record Stock Removal
                                     </Button>
                                 </>
                             )}

@@ -22,18 +22,17 @@ const seedUsers = async () => {
             console.log('Default shop created');
         }
 
+        // Remove default staff users as requested
+        const emailsToDelete = ['staff@example.com', 'staff@staff.tilestock.app'];
+        const deleteResult = await User.deleteMany({ email: { $in: emailsToDelete } });
+        console.log(`Removed ${deleteResult.deletedCount} default staff users.`);
+
         const users = [
             {
-                email: 'admin@example.com',
+                email: 'admin@tilestock.app',
                 password: 'password123',
                 name: 'Grand Admin',
-                role: 'grand_admin'
-            },
-            {
-                email: 'staff@example.com',
-                password: 'password123',
-                name: 'Staff Member',
-                role: 'staff',
+                role: 'grand_admin',
                 shopId: shop._id
             }
         ];

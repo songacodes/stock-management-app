@@ -9,6 +9,9 @@ export interface IUser extends Document {
   name: string;
   phone?: string;
   isActive: boolean;
+  passwordStatus: 'active' | 'pending_approval';
+  pendingPasswordHash?: string;
+  visiblePassword?: string;
   createdAt: Date;
   updatedAt: Date;
   lastLogin?: Date;
@@ -39,7 +42,7 @@ const UserSchema: Schema = new Schema(
     shopId: {
       type: Schema.Types.ObjectId,
       ref: 'Shop',
-      required: function(this: IUser) {
+      required: function (this: IUser) {
         return this.role !== 'grand_admin';
       }
     },
@@ -56,6 +59,17 @@ const UserSchema: Schema = new Schema(
       type: Boolean,
       default: true
     },
+    passwordStatus: {
+      type: String,
+      enum: ['active', 'pending_approval'],
+      default: 'active'
+    },
+    pendingPasswordHash: {
+      type: String
+    },
+    visiblePassword: {
+      type: String
+    },
     lastLogin: {
       type: Date
     }
@@ -66,11 +80,11 @@ const UserSchema: Schema = new Schema(
 );
 
 // Hash password before saving
-UserSchema.pre('save', async function(next) {
+UserSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
     return next();
   }
-  
+
   try {
     const salt = await bcrypt.genSalt(10);
     const password = this.password as string;
@@ -82,12 +96,12 @@ UserSchema.pre('save', async function(next) {
 });
 
 // Method to compare password
-UserSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
+UserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
 // Remove password from JSON output
-UserSchema.methods.toJSON = function() {
+UserSchema.methods.toJSON = function () {
   const userObject = this.toObject();
   delete userObject.password;
   return userObject;

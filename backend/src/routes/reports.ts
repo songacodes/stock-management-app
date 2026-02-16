@@ -14,6 +14,11 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
 
     const query: any = {};
 
+    // Multi-tenancy filtering
+    if (req.user?.role !== 'grand_admin') {
+      query.shopId = req.user?.shopId;
+    }
+
     // Date Filter
     if (startDate || endDate) {
       query.createdAt = {};
@@ -21,7 +26,6 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
         query.createdAt.$gte = new Date(startDate as string);
       }
       if (endDate) {
-        // Set end date to end of day
         const end = new Date(endDate as string);
         end.setHours(23, 59, 59, 999);
         query.createdAt.$lte = end;
@@ -39,15 +43,13 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
 
     const transactions = await StockTransaction.find(query)
       .populate('tileId', 'name sku images')
-      .populate('performedBy', 'username')
+      .populate('performedBy', 'name')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum);
 
     const total = await StockTransaction.countDocuments(query);
 
-    // Calculate simple stats for the filtered period
-    // Note: This aggregation might be heavy for large datasets, consider optimizing later
     const stats = await StockTransaction.aggregate([
       { $match: query },
       {
@@ -69,7 +71,7 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
       if (s._id === 'stock_out') statsMap.stock_out = s.totalQuantity;
     });
 
-    res.json({
+    return res.json({
       success: true,
       count: transactions.length,
       total,
@@ -80,9 +82,96 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
     });
   } catch (error: any) {
     console.error('Get reports error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Error fetching reports',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// @route   DELETE /api/reports/:id
+// @desc    Delete a stock transaction
+// @access  Private
+router.delete('/:id', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const query: any = { _id: req.params.id };
+
+    // Security: Users can only delete from their own shop
+    if (req.user?.role !== 'grand_admin') {
+      query.shopId = req.user?.shopId;
+    }
+
+    const transaction = await StockTransaction.findOneAndDelete(query);
+
+    if (!transaction) {
+      return res.status(404).json({
+        success: false,
+        message: 'Transaction not found or unauthorized'
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: 'Transaction deleted successfully'
+    });
+  } catch (error: any) {
+    console.error('Delete transaction error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error deleting transaction',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// @route   POST /api/reports/clear-filtered
+// @desc    Clear reports based on filters
+// @access  Private (Shop Admin or Grand Admin)
+router.post('/clear-filtered', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    // Only shop_admin and grand_admin can clear reports
+    if (req.user?.role !== 'grand_admin' && req.user?.role !== 'shop_admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to clear reports'
+      });
+    }
+
+    const { startDate, endDate, type } = req.body;
+    const query: any = {};
+
+    // Multi-tenancy filtering
+    if (req.user?.role !== 'grand_admin') {
+      query.shopId = req.user?.shopId;
+    }
+
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) query.createdAt.$gte = new Date(startDate);
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        query.createdAt.$lte = end;
+      }
+    }
+
+    if (type && type !== 'all') {
+      query.transactionType = type;
+    }
+
+    const result = await StockTransaction.deleteMany(query);
+
+    return res.json({
+      success: true,
+      message: `Successfully cleared ${result.deletedCount} reports`,
+      count: result.deletedCount
+    });
+  } catch (error: any) {
+    console.error('Clear reports error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error clearing reports',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }

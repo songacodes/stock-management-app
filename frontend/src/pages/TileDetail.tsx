@@ -17,6 +17,7 @@ import {
   Card,
   CardContent,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import {
   ArrowBack as ArrowBackIcon,
   Inventory as InventoryIcon,
@@ -33,26 +34,30 @@ import { formatRWF } from '../utils/currency';
 import { getImageUrl } from '../utils/imageUrl';
 
 const DetailItem: React.FC<{ icon: React.ReactNode; label: string; value: string | number | React.ReactNode }> = ({ icon, label, value }) => (
-  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
     <Box
       sx={{
-        mr: 2,
-        p: 1.5,
-        borderRadius: 2,
-        bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1),
+        mr: 2.5,
+        p: 2,
+        borderRadius: '16px',
+        background: (theme) => theme.palette.mode === 'dark'
+          ? `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.2)} 0%, ${alpha(theme.palette.primary.dark, 0.1)} 100%)`
+          : alpha(theme.palette.primary.main, 0.05),
         color: 'primary.main',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        boxShadow: 'none',
+        border: (theme) => `1px solid ${theme.palette.divider}`
       }}
     >
-      {icon}
+      {React.cloneElement(icon as React.ReactElement, { sx: { fontSize: 24 } })}
     </Box>
     <Box>
-      <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
         {label}
       </Typography>
-      <Typography variant="body1" sx={{ fontWeight: 600 }}>
+      <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', lineHeight: 1.2 }}>
         {value}
       </Typography>
     </Box>
@@ -60,6 +65,7 @@ const DetailItem: React.FC<{ icon: React.ReactNode; label: string; value: string
 );
 
 const TileDetail: React.FC = () => {
+  const theme = useTheme();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -125,9 +131,9 @@ const TileDetail: React.FC = () => {
           <Card
             elevation={0}
             sx={{
-              borderRadius: 4,
+              borderRadius: 1,
               overflow: 'hidden',
-              border: '1px solid rgba(0,0,0,0.08)',
+              border: (theme) => theme.palette.mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.14)' : `1px solid ${theme.palette.divider}`,
               bgcolor: 'background.paper',
             }}
           >
@@ -136,7 +142,7 @@ const TileDetail: React.FC = () => {
                 width: '100%',
                 paddingTop: '100%', // 1:1 Aspect Ratio
                 position: 'relative',
-                bgcolor: '#f8fafc',
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? alpha(theme.palette.background.default, 0.5) : '#f8fafc',
               }}
             >
               {currentTile.images && currentTile.images.length > 0 ? (
@@ -212,19 +218,23 @@ const TileDetail: React.FC = () => {
         <Grid item xs={12} md={7}>
           <Box>
             <Chip
-              label={currentTile.quantity > 0 ? 'In Stock' : 'Out of Stock'}
+              label={currentTile.quantity > 0 ? 'Optimal Stock' : 'Out of Stock'}
               color={currentTile.quantity > 0 ? 'success' : 'error'}
-              size="small"
-              sx={{ mb: 2, fontWeight: 600 }}
+              variant="filled"
+              sx={{
+                mb: 2,
+                fontWeight: 800,
+                borderRadius: 1,
+                px: 1,
+              }}
             />
             <Typography
-              variant="h3"
+              variant="h2"
               sx={{
-                fontWeight: 800,
+                fontWeight: 900,
+                letterSpacing: '-0.04em',
                 mb: 4,
-                background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
+                color: 'text.primary',
               }}
             >
               {currentTile.name}
@@ -272,30 +282,45 @@ const TileDetail: React.FC = () => {
             <Paper
               elevation={0}
               sx={{
-                mt: 4,
-                p: 3,
-                bgcolor: alpha('#2563eb', 0.04),
-                borderRadius: 4,
-                border: '1px dashed',
-                borderColor: 'primary.main',
+                mt: 5,
+                p: 4,
+                borderRadius: 1,
+                border: (theme) => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.14)' : theme.palette.divider}`,
+                background: (theme) => theme.palette.mode === 'dark' ? '#111827' : '#f8fafc',
+                position: 'relative',
+                overflow: 'hidden'
               }}
             >
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: 'primary.main' }}>
-                Stock Management
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Need to adjust inventory? Go to the Stock page to add or remove items.
-              </Typography>
-              <Button
-                variant="contained"
-                onClick={() => navigate('/stock')}
-                startIcon={<InventoryIcon />}
-                sx={{
-                  boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)',
-                }}
-              >
-                Manage Stock
-              </Button>
+              <Box sx={{ position: 'relative', zIndex: 1 }}>
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 800, color: 'primary.main', letterSpacing: '-0.01em' }}>
+                  Inventory Management
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 3, color: 'text.secondary', fontWeight: 500, maxWidth: '80%' }}>
+                  Manage stock levels and track changes with architectural precision.
+                </Typography>
+                <Button
+                  variant="contained"
+                  onClick={() => navigate('/stock')}
+                  startIcon={<InventoryIcon />}
+                  sx={{
+                    py: 1.5,
+                    px: 3,
+                    borderRadius: 1,
+                    fontWeight: 700,
+                  }}
+                >
+                  Adjust Inventory
+                </Button>
+              </Box>
+              <InventoryIcon sx={{
+                position: 'absolute',
+                right: -20,
+                bottom: -20,
+                fontSize: 140,
+                opacity: 0.03,
+                color: 'primary.main',
+                transform: 'rotate(-15deg)'
+              }} />
             </Paper>
           </Box>
         </Grid>

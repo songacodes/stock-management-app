@@ -30,6 +30,7 @@ import {
   Chip,
   Tooltip,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import {
   Add as AddIcon,
   Remove as RemoveIcon,
@@ -48,6 +49,7 @@ import { getImageUrl } from '../utils/imageUrl';
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 const StockManagement: React.FC = () => {
+  const theme = useTheme();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { tiles, loading } = useSelector((state: RootState) => state.tiles);
@@ -125,31 +127,65 @@ const StockManagement: React.FC = () => {
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
         <Box>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
-            Stock Management
+          <Typography
+            variant="h3"
+            sx={{
+              fontWeight: 900,
+              letterSpacing: '-0.04em',
+              background: (theme) => theme.palette.mode === 'dark'
+                ? `linear-gradient(135deg, #fff 0%, ${alpha(theme.palette.primary.light, 0.8)} 100%)`
+                : `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              mb: 1
+            }}
+          >
+            Inventory Control
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Track and adjust inventory levels
+          <Typography variant="body1" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+            Manage and track your products across all warehouses
           </Typography>
         </Box>
         <Box display="flex" gap={2}>
           <Button
             variant="contained"
-            color="success"
+            color="primary"
             startIcon={<AddIcon />}
             onClick={() => navigate('/stock/add')}
-            sx={{ boxShadow: '0 4px 12px rgba(46, 125, 50, 0.2)' }}
+            sx={{
+              borderRadius: '12px',
+              px: 3,
+              py: 1.2,
+              fontWeight: 700,
+              boxShadow: (theme) => `0 8px 16px ${alpha(theme.palette.primary.main, 0.2)}`,
+              background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+              '&:hover': {
+                boxShadow: (theme) => `0 12px 24px ${alpha(theme.palette.primary.main, 0.3)}`,
+                transform: 'translateY(-2px)'
+              }
+            }}
           >
-            Add Stock
+            Restock
           </Button>
           <Button
-            variant="contained"
+            variant="outlined"
             color="error"
             startIcon={<RemoveIcon />}
             onClick={() => navigate('/stock/remove')}
-            sx={{ boxShadow: '0 4px 12px rgba(211, 47, 47, 0.2)' }}
+            sx={{
+              borderRadius: '12px',
+              px: 3,
+              py: 1.2,
+              fontWeight: 700,
+              borderWidth: '2px',
+              '&:hover': {
+                borderWidth: '2px',
+                bgcolor: (theme) => alpha(theme.palette.error.main, 0.05),
+                transform: 'translateY(-2px)'
+              }
+            }}
           >
-            Remove Stock
+            Reduce
           </Button>
         </Box>
 
@@ -166,26 +202,32 @@ const StockManagement: React.FC = () => {
             flex: 1,
             minWidth: 300,
             position: 'relative',
-            borderRadius: 3,
-            backgroundColor: '#fff',
-            border: '1px solid rgba(0, 0, 0, 0.08)',
+            borderRadius: '14px',
+            backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.03) : alpha(theme.palette.common.black, 0.03),
+            border: `1px solid ${theme.palette.divider}`,
             display: 'flex',
             alignItems: 'center',
-            px: 2,
+            px: 2.5,
+            transition: 'all 0.3s ease',
+            '&:focus-within': {
+              borderColor: theme.palette.primary.main,
+              bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.05) : alpha(theme.palette.common.black, 0.01),
+              boxShadow: `0 0 0 4px ${alpha(theme.palette.primary.main, 0.1)}`
+            }
           }}
         >
-          <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} />
+          <SearchIcon sx={{ color: 'text.secondary', mr: 1.5, fontSize: 22 }} />
           <InputBase
-            placeholder="Search products..."
+            placeholder="Search by name or SKU..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            sx={{ flex: 1, py: 1 }}
+            sx={{ flex: 1, py: 1.2, fontWeight: 500 }}
           />
         </Box>
 
         <IconButton
           onClick={handleFilterClick}
-          sx={{ bgcolor: '#fff', border: '1px solid rgba(0,0,0,0.08)' }}
+          sx={{ bgcolor: 'background.paper', border: (theme) => `1px solid ${theme.palette.divider}` }}
         >
           <SortIcon />
         </IconButton>
@@ -195,7 +237,7 @@ const StockManagement: React.FC = () => {
           <MenuItem onClick={() => handleSortChange('stock')} selected={sortBy === 'stock'}>Stock Level</MenuItem>
         </Menu>
 
-        <Box sx={{ display: 'flex', bgcolor: '#fff', borderRadius: 2, border: '1px solid rgba(0,0,0,0.08)' }}>
+        <Box sx={{ display: 'flex', bgcolor: 'background.paper', borderRadius: 2, border: (theme) => `1px solid ${theme.palette.divider}` }}>
           <IconButton onClick={() => setViewMode('list')} color={viewMode === 'list' ? 'primary' : 'default'}>
             <ViewListIcon />
           </IconButton>
@@ -207,14 +249,14 @@ const StockManagement: React.FC = () => {
 
       {/* Main Content */}
       {viewMode === 'list' ? (
-        <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: 2 }}>
+        <TableContainer component={Paper} elevation={0} sx={{ border: `1px solid ${theme.palette.divider}`, borderRadius: 5, overflow: 'hidden' }}>
           <Table>
-            <TableHead sx={{ bgcolor: '#f8fafc' }}>
+            <TableHead sx={{ bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.02) : alpha(theme.palette.common.black, 0.02) }}>
               <TableRow>
-                <TableCell>Product</TableCell>
-                <TableCell>SKU</TableCell>
-                <TableCell>Stock Level</TableCell>
-                <TableCell align="right">Actions</TableCell>
+                <TableCell sx={{ fontWeight: 700, py: 2.5 }}>Product</TableCell>
+                <TableCell sx={{ fontWeight: 700, py: 2.5 }}>SKU</TableCell>
+                <TableCell sx={{ fontWeight: 700, py: 2.5 }}>Stock Details</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 700, py: 2.5 }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -236,10 +278,13 @@ const StockManagement: React.FC = () => {
                     </Box>
                   </TableCell>
                   <TableCell align="right">
-                    <Tooltip title="Delete Item Forever">
+                    <Tooltip title="Delete Permanently">
                       <IconButton
                         size="small"
-                        sx={{ color: '#94a3b8' }}
+                        sx={{
+                          color: theme.palette.text.secondary,
+                          '&:hover': { color: theme.palette.error.main, bgcolor: alpha(theme.palette.error.main, 0.08) }
+                        }}
                         onClick={() => {
                           setItemToDelete({ id: tile._id, name: tile.name });
                           setDeleteDialogOpen(true);
@@ -258,14 +303,27 @@ const StockManagement: React.FC = () => {
         <Grid container spacing={2}>
           {filteredTiles.map((tile) => (
             <Grid item xs={12} sm={6} md={4} lg={3} key={tile._id}>
-              <Card elevation={0} sx={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: 3 }}>
-                <Box sx={{ position: 'relative', pt: '75%', bgcolor: '#f1f5f9' }}>
+              <Card
+                elevation={0}
+                sx={{
+                  borderRadius: 5,
+                  border: `1px solid ${theme.palette.divider}`,
+                  background: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.4) : '#fff',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': {
+                    transform: 'translateY(-8px)',
+                    borderColor: theme.palette.primary.main,
+                    boxShadow: `0 12px 24px ${alpha(theme.palette.common.black, theme.palette.mode === 'dark' ? 0.5 : 0.05)}`
+                  }
+                }}
+              >
+                <Box sx={{ position: 'relative', pt: '75%', bgcolor: theme.palette.mode === 'dark' ? '#04070a' : '#f8fafc' }}>
                   {tile.images?.[0] ? (
                     <Box component="img" src={getImageUrl(tile.images[0].url)}
                       sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   ) : (
-                    <InventoryIcon sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', opacity: 0.2 }} />
+                    <InventoryIcon sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', opacity: 0.1, fontSize: 48 }} />
                   )}
                 </Box>
                 <CardContent>
@@ -315,102 +373,91 @@ const StockManagement: React.FC = () => {
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: 3,
-            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+            borderRadius: '28px',
+            overflow: 'hidden',
+            border: theme.palette.mode === 'dark' ? `1px solid ${alpha(theme.palette.error.main, 0.2)}` : 'none',
+            boxShadow: theme.palette.mode === 'dark' ? '0 50px 100px -20px rgba(0, 0, 0, 0.8)' : '0 25px 50px -12px rgba(0, 0, 0, 0.1)',
           }
         }}
       >
-        <Box sx={{ p: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 3 }}>
+        <Box sx={{ p: 5 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', mb: 4 }}>
             <Box sx={{
-              bgcolor: '#fee2e2',
-              p: 1.5,
-              borderRadius: 2,
+              width: 80,
+              height: 80,
+              borderRadius: '24px',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              background: alpha(theme.palette.error.main, 0.1),
+              color: theme.palette.error.main,
+              mb: 3,
+              boxShadow: `0 12px 24px ${alpha(theme.palette.error.main, 0.15)}`
             }}>
-              <DeleteIcon sx={{ fontSize: 32, color: '#dc2626' }} />
+              <DeleteIcon sx={{ fontSize: 40 }} />
             </Box>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="h5" fontWeight={700} gutterBottom>
-                Delete Item Forever?
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                This action is permanent and cannot be undone
-              </Typography>
-            </Box>
-          </Box>
-
-          <Box sx={{
-            bgcolor: '#fef2f2',
-            p: 2.5,
-            borderRadius: 2,
-            border: '1px solid #fecaca',
-            mb: 3
-          }}>
-            <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-              You are about to delete:
+            <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: '-0.03em', color: theme.palette.text.primary, mb: 1.5 }}>
+              Confirm Deletion
             </Typography>
-            <Typography variant="h6" fontWeight={700} color="#dc2626">
-              {itemToDelete?.name}
+            <Typography variant="body1" sx={{ color: theme.palette.text.secondary, fontWeight: 500, maxWidth: '80%' }}>
+              You are about to permanently remove <Box component="span" sx={{ color: theme.palette.error.main, fontWeight: 700 }}>{itemToDelete?.name}</Box> from the database.
             </Typography>
           </Box>
 
           <Alert
             severity="warning"
-            icon={false}
             sx={{
-              bgcolor: '#fffbeb',
-              border: '1px solid #fde68a',
-              '& .MuiAlert-message': {
-                width: '100%'
-              }
+              borderRadius: '16px',
+              border: `1px solid ${alpha(theme.palette.warning.main, 0.2)}`,
+              bgcolor: alpha(theme.palette.warning.main, 0.05),
+              py: 1.5,
+              mb: 4,
+              '& .MuiAlert-icon': { color: theme.palette.warning.main }
             }}
           >
-            <Typography variant="body2" fontWeight={600} gutterBottom>
-              Warning
+            <Typography variant="body2" sx={{ fontWeight: 700, color: theme.palette.warning.main, mb: 0.5 }}>
+              Irreversible Action
             </Typography>
-            <Typography variant="caption" color="text.secondary">
-              All stock data, images, and history for this item will be permanently removed from the system.
+            <Typography variant="caption" sx={{ color: theme.palette.text.secondary, display: 'block' }}>
+              All transaction history and product images will be lost forever.
             </Typography>
           </Alert>
 
-          <Box sx={{ display: 'flex', gap: 2, mt: 4 }}>
+          <Box sx={{ display: 'flex', gap: 2.5 }}>
             <Button
               onClick={() => {
                 setDeleteDialogOpen(false);
                 setItemToDelete(null);
               }}
-              variant="outlined"
-              fullWidth
+              variant="text"
               sx={{
-                py: 1.5,
-                borderColor: '#e5e7eb',
-                color: 'text.secondary',
-                '&:hover': {
-                  borderColor: '#d1d5db',
-                  bgcolor: '#f9fafb'
-                }
+                flex: 1,
+                py: 2,
+                borderRadius: '16px',
+                fontWeight: 700,
+                color: theme.palette.text.secondary,
+                '&:hover': { bgcolor: alpha(theme.palette.text.primary, 0.05) }
               }}
             >
-              Cancel
+              Keep Product
             </Button>
             <Button
               onClick={handleDelete}
               variant="contained"
               color="error"
-              fullWidth
-              startIcon={<DeleteIcon />}
               sx={{
-                py: 1.5,
-                bgcolor: '#dc2626',
+                flex: 1.5,
+                py: 2,
+                borderRadius: '16px',
+                fontWeight: 900,
+                boxShadow: `0 8px 24px ${alpha(theme.palette.error.main, 0.3)}`,
                 '&:hover': {
-                  bgcolor: '#b91c1c'
+                  bgcolor: theme.palette.error.dark,
+                  boxShadow: `0 12px 32px ${alpha(theme.palette.error.main, 0.4)}`,
                 }
               }}
             >
-              Delete Forever
+              Delete Permanently
             </Button>
           </Box>
         </Box>

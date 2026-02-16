@@ -7,6 +7,7 @@ import salesReducer from './slices/salesSlice';
 import reportsReducer from './slices/reportsSlice';
 import shopReducer from './slices/shopSlice';
 import notificationReducer from './slices/notificationSlice';
+import themeReducer from './slices/themeSlice';
 
 export const store = configureStore({
   reducer: {
@@ -15,8 +16,9 @@ export const store = configureStore({
     stock: stockReducer,
     sales: salesReducer,
     reports: reportsReducer,
-    shops: shopReducer,
+    shop: shopReducer,
     notifications: notificationReducer,
+    theme: themeReducer,
   },
 });
 

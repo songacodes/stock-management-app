@@ -5,7 +5,7 @@ import StockTransaction from '../models/StockTransaction';
 import { authenticate, AuthRequest } from '../middleware/auth';
 
 const router = express.Router();
-
+     
 // @route   GET /api/stock
 // @desc    Get stock information for all tiles
 // @access  Private
@@ -115,6 +115,7 @@ router.post(
       // Create transaction record
       await StockTransaction.create({
         tileId: tile._id,
+        shopId: req.user?.shopId,
         transactionType: 'stock_in',
         quantity: totalQuantity,
         packets,
@@ -203,6 +204,7 @@ router.post(
       // Create transaction record
       await StockTransaction.create({
         tileId: tile._id,
+        shopId: req.user?.shopId,
         transactionType: 'stock_out',
         quantity: totalQuantity,
         packets,

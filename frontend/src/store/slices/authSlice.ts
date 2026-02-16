@@ -9,6 +9,8 @@ interface User {
   name: string;
   role: string;
   shopId?: string;
+  phone?: string;
+  passwordStatus?: 'active' | 'pending_approval';
 }
 
 interface AuthState {
@@ -36,7 +38,8 @@ export const login = createAsyncThunk(
       localStorage.setItem('token', response.data.token);
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Login failed');
+      const message = error.response?.data?.message || error.response?.data?.errors?.[0]?.msg || 'Login failed';
+      return rejectWithValue(message);
     }
   }
 );
@@ -65,6 +68,22 @@ export const getCurrentUser = createAsyncThunk(
       return response.data.user;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to get user');
+    }
+  }
+);
+
+export const updateProfile = createAsyncThunk(
+  'auth/updateProfile',
+  async (profileData: { name: string; phone: string }, { getState, rejectWithValue }) => {
+    try {
+      const state = getState() as any;
+      const token = state.auth.token;
+      const response = await axios.put(`${API_URL}/auth/profile`, profileData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return response.data; // Backend returns { success: true, user: { ... } }
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update profile');
     }
   }
 );
@@ -124,6 +143,19 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.token = null;
         localStorage.removeItem('token');
+      })
+      // Update Profile
+      .addCase(updateProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateProfile.fulfilled, (state, action: PayloadAction<any>) => {
+        state.loading = false;
+        state.user = action.payload.user;
+      })
+      .addCase(updateProfile.rejected, (state, action: PayloadAction<any>) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });

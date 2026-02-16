@@ -157,22 +157,21 @@ router.post(
         return;
       }
 
-      // Process uploaded images
+      // Process uploaded images from Cloudinary
       const images: any[] = [];
-      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+      const files = req.files as { [fieldname: string]: any[] };
 
-      // Handle file uploads (multipart/form-data)
+      // Handle file uploads (multer-storage-cloudinary puts the URL in 'path')
       if (files && files['images']) {
         for (const file of files['images']) {
-          const processed = await processImage(file.path, file.filename);
           images.push({
-            url: processed.original,
+            url: file.path, // This is the Cloudinary URL
             uploadedAt: new Date()
           });
         }
       }
 
-      // Handle JSON image URLs (application/json)
+      // Handle custom images if provided in body (fallback)
       if (images.length === 0 && req.body.images && Array.isArray(req.body.images)) {
         images.push(...req.body.images.map((img: any) => ({
           url: img.url || img,
@@ -180,20 +179,13 @@ router.post(
         })));
       }
 
-      if (images.length === 0) {
-        res.status(400).json({
-          success: false,
-          message: 'At least one image is required'
-        });
-        return;
-      }
-
       const tileData = {
         name: req.body.name,
         price: parseFloat(req.body.price),
         quantity: Math.floor(parseFloat(req.body.quantity)) || 0,
         itemsPerPacket: parseInt(req.body.itemsPerPacket) || 1,
-        images
+        images,
+        shopId: req.user?.shopId // Associate with user's shop
       };
 
       const tile = new Tile(tileData);

@@ -13,6 +13,10 @@ export interface IShop extends Document {
     phone?: string;
     email?: string;
   };
+  administratorName?: string;
+  settings: {
+    lowStockThreshold: number;
+  };
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -35,6 +39,13 @@ const ShopSchema: Schema = new Schema(
     contact: {
       phone: { type: String, trim: true },
       email: { type: String, trim: true, lowercase: true }
+    },
+    administratorName: { type: String, trim: true },
+    settings: {
+      lowStockThreshold: {
+        type: Number,
+        default: 50
+      }
     },
     isActive: {
       type: Boolean,

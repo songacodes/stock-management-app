@@ -17,7 +17,7 @@ import {
     Divider,
     InputAdornment,
 } from '@mui/material';
-import { alpha } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import {
     Add as AddIcon,
     ArrowBack as ArrowBackIcon,
@@ -42,6 +42,7 @@ interface AdditionItem {
 }
 
 const AddStock: React.FC = () => {
+    const theme = useTheme();
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
     const { tiles, loading } = useSelector((state: RootState) => state.tiles);
@@ -132,34 +133,51 @@ const AddStock: React.FC = () => {
     }
 
     return (
-        <Box sx={{ minHeight: '100vh', bgcolor: '#fafafa', pb: 4 }}>
+        <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 4 }}>
             <Container maxWidth="xl">
-                <Box sx={{ py: 3, borderBottom: '2px solid #16a34a', mb: 3 }}>
+                <Box sx={{ py: 4, mb: 4, borderBottom: (theme) => `1px solid ${theme.palette.divider}` }}>
                     <Button
                         startIcon={<ArrowBackIcon />}
                         onClick={() => navigate('/stock')}
-                        sx={{ mb: 2, color: 'text.secondary' }}
+                        sx={{
+                            mb: 3,
+                            color: 'text.secondary',
+                            fontWeight: 700,
+                            '&:hover': { color: 'primary.main', bgcolor: 'transparent' }
+                        }}
                     >
-                        Back to Stock Overview
+                        Return to Inventory
                     </Button>
 
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                         <Box sx={{
-                            bgcolor: '#dcfce7',
+                            bgcolor: (theme) => theme.palette.mode === 'dark' ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.success.main, 0.05),
                             p: 2,
-                            borderRadius: 2,
+                            borderRadius: 1,
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center'
+                            justifyContent: 'center',
+                            border: (theme) => `1px solid ${theme.palette.mode === 'dark' ? alpha(theme.palette.success.main, 0.3) : alpha(theme.palette.success.main, 0.1)}`
                         }}>
-                            <AddIcon sx={{ fontSize: 40, color: '#16a34a' }} />
+                            <AddIcon sx={{ fontSize: 32, color: 'success.main' }} />
                         </Box>
                         <Box>
-                            <Typography variant="h4" fontWeight={700} color="#16a34a">
-                                Add Stock to Inventory
+                            <Typography
+                                variant="h3"
+                                sx={{
+                                    fontWeight: 900,
+                                    letterSpacing: '-0.04em',
+                                    background: (theme) => theme.palette.mode === 'dark'
+                                        ? `linear-gradient(135deg, ${theme.palette.success.light} 0%, #ffffff 100%)`
+                                        : `linear-gradient(135deg, ${theme.palette.success.dark} 0%, ${theme.palette.success.main} 100%)`,
+                                    WebkitBackgroundClip: 'text',
+                                    WebkitTextFillColor: 'transparent',
+                                }}
+                            >
+                                Restock Inventory
                             </Typography>
-                            <Typography variant="body1" color="text.secondary">
-                                Click product images to select, then enter quantities to add
+                            <Typography variant="body1" sx={{ color: 'text.secondary', fontWeight: 500, mt: 0.5 }}>
+                                Select items from the catalog below to add pieces to your current stock
                             </Typography>
                         </Box>
                     </Box>
@@ -174,17 +192,26 @@ const AddStock: React.FC = () => {
                         <Box sx={{ mb: 3 }}>
                             <TextField
                                 fullWidth
-                                placeholder="Search products..."
+                                placeholder="Filter by name or reference number..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 InputProps={{
                                     startAdornment: (
                                         <InputAdornment position="start">
-                                            <SearchIcon />
+                                            <SearchIcon sx={{ color: 'text.secondary' }} />
                                         </InputAdornment>
                                     ),
                                 }}
-                                sx={{ bgcolor: 'white', borderRadius: 2 }}
+                                sx={{
+                                    bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.03) : alpha(theme.palette.common.black, 0.03),
+                                    '& .MuiOutlinedInput-root': {
+                                        borderRadius: '12px',
+                                        border: `1px solid ${theme.palette.divider}`,
+                                        '& fieldset': { borderColor: 'transparent' },
+                                        '&:hover fieldset': { borderColor: theme.palette.success.main },
+                                        '&.Mui-focused fieldset': { borderColor: theme.palette.success.main }
+                                    }
+                                }}
                             />
                         </Box>
 
@@ -199,12 +226,15 @@ const AddStock: React.FC = () => {
                                             onClick={() => toggleSelection(tile._id)}
                                             sx={{
                                                 cursor: 'pointer',
-                                                border: selected ? '3px solid #16a34a' : '1px solid #e5e7eb',
-                                                transition: 'all 0.2s',
+                                                border: (theme) => selected
+                                                    ? `2px solid ${theme.palette.success.main}`
+                                                    : theme.palette.mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.14)' : `1px solid ${theme.palette.divider}`,
+                                                borderRadius: 1,
                                                 position: 'relative',
+                                                bgcolor: theme.palette.mode === 'dark' ? '#111827' : '#fff',
+                                                transition: 'all 0.2s ease',
                                                 '&:hover': {
-                                                    boxShadow: 4,
-                                                    transform: 'translateY(-4px)',
+                                                    borderColor: theme.palette.success.main,
                                                 },
                                             }}
                                         >
@@ -215,7 +245,7 @@ const AddStock: React.FC = () => {
                                                         top: 8,
                                                         right: 8,
                                                         zIndex: 1,
-                                                        bgcolor: '#16a34a',
+                                                        bgcolor: 'success.main',
                                                         borderRadius: '50%',
                                                         p: 0.5,
                                                     }}
@@ -251,16 +281,25 @@ const AddStock: React.FC = () => {
                             sx={{
                                 position: 'sticky',
                                 top: 20,
-                                bgcolor: 'white',
+                                bgcolor: 'background.paper',
                                 borderRadius: 3,
                                 p: 3,
-                                boxShadow: 3,
+                                border: (theme) => `1px solid ${theme.palette.divider}`,
                             }}
                         >
-                            <Typography variant="h6" fontWeight={700} gutterBottom>
-                                Addition Cart ({selectedItems.length})
+                            <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, letterSpacing: '-0.02em' }}>
+                                Addition List
                             </Typography>
-                            <Divider sx={{ mb: 2 }} />
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                                <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+                                    {selectedItems.length} products selected
+                                </Typography>
+                                {selectedItems.length > 0 && (
+                                    <Button size="small" variant="text" color="error" onClick={() => setSelectedItems([])} sx={{ fontWeight: 700 }}>
+                                        Clear All
+                                    </Button>
+                                )}
+                            </Box>
 
                             {selectedItems.length === 0 ? (
                                 <Typography color="text.secondary" textAlign="center" py={4}>
@@ -278,7 +317,7 @@ const AddStock: React.FC = () => {
                                             const totalQty = ((Number(item.packets) || 0) * itemsPerPacket) + (Number(item.pieces) || 0);
 
                                             return (
-                                                <Box key={item.tileId} sx={{ mb: 2, p: 2, bgcolor: '#f8fafc', borderRadius: 2 }}>
+                                                <Box key={item.tileId} sx={{ mb: 2, p: 2, bgcolor: (theme) => alpha(theme.palette.background.default, 0.5), borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
                                                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                                                         <Box
                                                             component="img"
@@ -375,14 +414,13 @@ const AddStock: React.FC = () => {
                                                             }}
                                                             helperText="Only set this if the packet size has changed for this new batch"
                                                             sx={{
-                                                                '& .MuiInputBase-root': { bgcolor: 'white' },
-                                                                '& .MuiInputLabel-root': { color: '#16a34a' }
+                                                                '& .MuiInputBase-root': { bgcolor: 'background.default' },
                                                             }}
                                                         />
                                                     </Box>
 
                                                     {totalQty > 0 && (
-                                                        <Box sx={{ mt: 1.5, p: 1, bgcolor: alpha('#16a34a', 0.08), borderRadius: 1.5 }}>
+                                                        <Box sx={{ mt: 1.5, p: 1, bgcolor: alpha(theme.palette.success.main, 0.08), borderRadius: 1.5 }}>
                                                             <Typography variant="caption" color="success.main" fontWeight={700} sx={{ display: 'block' }}>
                                                                 Total Addition: {totalQty} pieces
                                                             </Typography>
@@ -411,9 +449,20 @@ const AddStock: React.FC = () => {
                                         size="large"
                                         startIcon={<AddIcon />}
                                         onClick={handleAddStock}
-                                        sx={{ py: 1.5 }}
+                                        sx={{
+                                            py: 2,
+                                            borderRadius: '16px',
+                                            fontWeight: 900,
+                                            fontSize: '1rem',
+                                            boxShadow: `0 12px 24px ${alpha(theme.palette.primary.main, 0.3)}`,
+                                            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+                                            '&:hover': {
+                                                boxShadow: `0 16px 32px ${alpha(theme.palette.primary.main, 0.4)}`,
+                                                transform: 'translateY(-2px)'
+                                            }
+                                        }}
                                     >
-                                        Confirm Add Stock
+                                        Update Inventory
                                     </Button>
                                 </>
                             )}

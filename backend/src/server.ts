@@ -74,12 +74,16 @@ import authRoutes from './routes/auth';
 import tileRoutes from './routes/tiles';
 import stockRoutes from './routes/stock';
 import reportRoutes from './routes/reports';
+import shopRoutes from './routes/shops';
+import saleRoutes from './routes/sales';
 
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/tiles', tileRoutes);
 app.use('/api/stock', stockRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/shops', shopRoutes);
+app.use('/api/sales', saleRoutes);
 
 app.get('/api', (_req: Request, res: Response) => {
   res.json({

@@ -135,9 +135,20 @@ router.post(
 router.put(
   '/:id',
   authenticate,
-  authorize('grand_admin'),
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
+      // Check permissions: Grand admin or Shop admin updating their own shop
+      if (
+        req.user!.role !== 'grand_admin' &&
+        (req.user!.role !== 'shop_admin' || req.user!.shopId?.toString() !== req.params.id)
+      ) {
+        res.status(403).json({
+          success: false,
+          message: 'Access denied'
+        });
+        return;
+      }
+
       const shop = await Shop.findByIdAndUpdate(
         req.params.id,
         { ...req.body, updatedAt: new Date() },
@@ -246,7 +257,7 @@ router.get(
       // Get statistics
       const mongoose = require('mongoose');
       const shopObjectId = new mongoose.Types.ObjectId(shopId);
-      
+
       const [
         totalTiles,
         totalStock,

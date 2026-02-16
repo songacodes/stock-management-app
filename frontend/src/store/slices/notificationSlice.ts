@@ -28,14 +28,16 @@ const initialState: NotificationState = {
 // Generate notifications based on tiles data
 export const generateNotifications = createAsyncThunk(
   'notifications/generate',
-  async (tiles: any[], { rejectWithValue }) => {
+  async (tiles: any[], { getState, rejectWithValue }) => {
     try {
+      const state = getState() as any;
+      const lowStockThreshold = state.shop.currentShop?.settings?.lowStockThreshold || 50;
       const notifications: Notification[] = [];
       const now = new Date();
 
       // Check for low stock items
-      tiles.forEach((tile) => {
-        if (tile.quantity <= 0) {
+      tiles.forEach((tile: any) => {
+        if ((tile.quantity || 0) <= 0) {
           notifications.push({
             _id: `low-stock-${tile._id}`,
             type: 'low_stock',
@@ -46,7 +48,7 @@ export const generateNotifications = createAsyncThunk(
             read: false,
             createdAt: now.toISOString(),
           });
-        } else if (tile.quantity <= 5) {
+        } else if ((tile.quantity || 0) < lowStockThreshold) {
           notifications.push({
             _id: `low-stock-${tile._id}`,
             type: 'low_stock',
