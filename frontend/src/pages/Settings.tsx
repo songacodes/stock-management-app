@@ -112,7 +112,7 @@ const Settings: React.FC = () => {
             } else if (user?.role === 'grand_admin') {
                 // Fallback for grand_admin: Fetch first available shop if no shopId associated
                 try {
-                    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+                    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
                     const token = localStorage.getItem('token');
                     const response = await axios.get(`${API_URL}/shops`, {
                         headers: { Authorization: `Bearer ${token}` }
@@ -149,7 +149,7 @@ const Settings: React.FC = () => {
     const fetchStaff = async () => {
         if (user?.role !== 'grand_admin') return;
         try {
-            const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
             const res = await axios.get(`${API_URL}/auth/staff`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -173,7 +173,7 @@ const Settings: React.FC = () => {
         }
         setLoading(true);
         try {
-            const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
             const targetShopId = (user?.shopId || (user?.role === 'grand_admin' ? currentShop?._id : null)) as string;
 
             if (!targetShopId) {
@@ -200,7 +200,7 @@ const Settings: React.FC = () => {
     const handleApprovePassword = async (staffId: string) => {
         setLoading(true);
         try {
-            const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
             await axios.post(`${API_URL}/auth/staff/approve/${staffId}`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -236,7 +236,7 @@ const Settings: React.FC = () => {
         setLoading(true);
         try {
             // Fix: Use consistent API_URL logic
-            const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
             await axios.put(`${API_URL}/auth/password`, {
                 currentPassword: passwordData.currentPassword,
                 newPassword: passwordData.newPassword

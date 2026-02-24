@@ -6,11 +6,19 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Configure Cloudinary
-cloudinary.config({
+const cloudinaryConfig = {
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
-});
+};
+
+// Validate Cloudinary configuration
+if (!cloudinaryConfig.cloud_name || !cloudinaryConfig.api_key || !cloudinaryConfig.api_secret) {
+  console.warn('\x1b[33m%s\x1b[0m', '[WARNING] Cloudinary configuration is incomplete. Image uploads will fail.');
+  console.warn('\x1b[33m%s\x1b[0m', 'Please check your .env file and ensure CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET are set.');
+}
+
+cloudinary.config(cloudinaryConfig);
 
 // Configure Cloudinary Storage
 const storage = new CloudinaryStorage({

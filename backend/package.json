@@ -4,7 +4,7 @@
   "description": "Backend API for Tile Stock Management System",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "nodemon",
+    "dev": "nodemon --exec tsx src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "jest",
@@ -47,6 +47,7 @@
     "nodemon": "^3.0.2",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.2",
+    "tsx": "^4.7.0",
     "typescript": "^5.3.3"
   }
 }

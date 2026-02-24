@@ -1,6 +1,14 @@
 import sharp from 'sharp';
 import path from 'path';
 import fs from 'fs';
+import { v2 as cloudinary } from 'cloudinary';
+
+// Configure Cloudinary (re-use the same config as upload middleware)
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 const uploadDir = path.join(__dirname, '../../uploads');
 
@@ -21,6 +29,15 @@ export const processImage = async (
   const ext = path.parse(filename).ext;
   const dir = path.dirname(filePath);
 
+  // If filePath is a URL (Cloudinary), return as is
+  if (filePath.startsWith('http')) {
+    return {
+      original: filePath,
+      thumbnail: filePath, // Cloudinary handles resizing via URL, but for simplicity returning same URL
+      medium: filePath
+    };
+  }
+
   const result: ProcessedImage = {
     original: `/uploads/${filename}`
   };
@@ -35,7 +52,7 @@ export const processImage = async (
       })
       .jpeg({ quality: 80 })
       .toFile(thumbnailPath);
-    
+
     result.thumbnail = `/uploads/${path.basename(thumbnailPath)}`;
 
     // Generate medium size (800x800)
@@ -47,7 +64,7 @@ export const processImage = async (
       })
       .jpeg({ quality: 85 })
       .toFile(mediumPath);
-    
+
     result.medium = `/uploads/${path.basename(mediumPath)}`;
 
     return result;
@@ -63,6 +80,22 @@ export const processImage = async (
  */
 export const deleteImage = async (imageUrl: string): Promise<void> => {
   try {
+    // Handle Cloudinary URLs
+    if (imageUrl.includes('cloudinary.com')) {
+      // Extract public_id from URL
+      // Example URL: https://res.cloudinary.com/cloud_name/image/upload/v1234567/folder/public_id.jpg
+      const parts = imageUrl.split('/');
+      const lastPart = parts[parts.length - 1];
+      const folderPart = parts[parts.length - 2];
+
+      // If it's in a folder (like 'tile-management'), we need folder/public_id
+      const publicIdWithFolder = `${folderPart}/${path.parse(lastPart).name}`;
+
+      console.log('Deleting from Cloudinary:', publicIdWithFolder);
+      await cloudinary.uploader.destroy(publicIdWithFolder);
+      return;
+    }
+
     const filename = path.basename(imageUrl);
     const baseName = path.parse(filename).name;
     const ext = path.parse(filename).ext;

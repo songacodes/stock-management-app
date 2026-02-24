@@ -26,7 +26,7 @@ import { updateTileStock } from './store/slices/tileSlice';
 // ... other imports
 
 // Initialize socket outside component to prevent multiple connections
-const socket = io(process.env.REACT_APP_API_URL || 'http://localhost:5000');
+const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
 
 function App() {
   const dispatch = useDispatch();

@@ -173,7 +173,7 @@ const Dashboard: React.FC = () => {
   const fetchPendingApprovals = async () => {
     if (user?.role !== 'grand_admin') return;
     try {
-      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
       const res = await axios.get(`${API_URL}/auth/staff`, {
         headers: { Authorization: `Bearer ${token}` }
       });

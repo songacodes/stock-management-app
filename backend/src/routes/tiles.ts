@@ -273,11 +273,8 @@ router.delete('/:id', authenticate, async (req: AuthRequest, res: Response): Pro
       }
     }
 
-    // Soft delete logic
-    tile.isDeleted = true;
-    await tile.save();
-
-    // await Tile.findByIdAndDelete(req.params.id);
+    // Hard delete logic
+    await Tile.findByIdAndDelete(req.params.id);
 
     res.json({
       success: true,

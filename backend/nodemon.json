@@ -2,9 +2,11 @@
   "watch": [
     "src"
   ],
-  "ext": "ts,json",
+  "ext": "ts,js",
   "ignore": [
-    "src/**/*.test.ts"
+    "src/**/*.spec.ts",
+    "node_modules",
+    "uploads"
   ],
-  "exec": "ts-node"
+  "exec": "tsx src/server.ts"
 }

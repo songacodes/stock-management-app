@@ -27,10 +27,15 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   maxFiles = 10,
 }) => {
   const [uploading, setUploading] = useState(false);
+  const [localPreviews, setLocalPreviews] = useState<string[]>([]);
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       if (acceptedFiles.length === 0) return;
+
+      // Create local previews for immediate feedback
+      const newPreviews = acceptedFiles.map(file => URL.createObjectURL(file));
+      setLocalPreviews(prev => [...prev, ...newPreviews]);
 
       setUploading(true);
       const newImages: string[] = [...images];
@@ -41,8 +46,9 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           formData.append('image', file);
 
           const token = localStorage.getItem('token');
+          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
           const response = await fetch(
-            `${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/tiles/upload-image`,
+            `${API_URL}/tiles/upload-image`,
             {
               method: 'POST',
               headers: {
@@ -71,6 +77,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         alert('Failed to upload images. Please try again.');
       } finally {
         setUploading(false);
+        // Clear local previews after upload attempt
+        setLocalPreviews([]);
       }
     },
     [images, onImagesChange, maxFiles]
@@ -136,8 +144,9 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         )}
       </Box>
 
-      {images.length > 0 && (
+      {(images.length > 0 || localPreviews.length > 0) && (
         <Grid container spacing={2} sx={{ mt: 2 }}>
+          {/* Show already uploaded images */}
           {images.map((image, index) => (
             <Grid item xs={6} sm={4} md={3} key={index}>
               <Paper
@@ -229,6 +238,52 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
                     Primary
                   </Box>
                 )}
+              </Paper>
+            </Grid>
+          ))}
+
+          {/* Show local previews while uploading */}
+          {localPreviews.map((preview, index) => (
+            <Grid item xs={6} sm={4} md={3} key={`preview-${index}`}>
+              <Paper sx={{ position: 'relative', padding: 1, opacity: 0.7 }}>
+                <Box
+                  sx={{
+                    width: '100%',
+                    paddingTop: '100%',
+                    position: 'relative',
+                    bgcolor: 'grey.200',
+                    borderRadius: 1,
+                    overflow: 'hidden',
+                  }}
+                >
+                  <img
+                    src={preview}
+                    alt="Preview"
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                    }}
+                  />
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      bgcolor: 'rgba(0,0,0,0.2)',
+                    }}
+                  >
+                    <CircularProgress size={24} color="inherit" />
+                  </Box>
+                </Box>
               </Paper>
             </Grid>
           ))}
